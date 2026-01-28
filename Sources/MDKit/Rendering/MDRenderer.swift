@@ -6,12 +6,10 @@ public struct MDRenderer: MDRendering {
     private init() {}
 
     public static func makeBlockView(
-        block: MDBlock,
-        style: MDStyle,
+        block: MDBlock
     ) -> MDBlockView {
         MDBlockView(
             block: block,
-            style: style,
         )
     }
 }

@@ -1,28 +1,51 @@
 import SwiftUI
 
+/// Markdown 全局样式配置
 public struct MDStyle {
+    /// 一级标题样式
     public var header1: MDTextStyle
+    /// 二级标题样式
     public var header2: MDTextStyle
+    /// 三级标题样式
     public var header3: MDTextStyle
+    /// 四级标题样式
     public var header4: MDTextStyle
+    /// 五级标题样式
     public var header5: MDTextStyle
+    /// 六级标题样式
     public var header6: MDTextStyle
+    /// 正文样式
     public var paragraph: MDTextStyle
+    /// 链接样式
     public var link: MDTextStyle
+    /// 行内文本样式
     public var inline: MDInlineTextStyle
+    /// 引用样式
     public var quote: MDQuoteStyle
+    /// 无序列表样式
     public var unorderedList: MDListStyle
+    /// 有序列表样式
     public var orderedList: MDListStyle
+    /// 任务列表样式
     public var taskList: MDTaskListStyle
+    /// 代码块样式
     public var code: MDCodeStyle
+    /// 图片样式
     public var image: MDImageStyle
+    /// 表格样式
     public var table: MDTableStyle
+    /// 分割线样式
     public var divider: MDDividerStyle
+    /// 脚注样式
     public var footnote: MDFootnoteStyle
+    /// 行内数学公式样式
     public var mathInline: MDMathStyle
+    /// 块级数学公式样式
     public var mathBlock: MDMathStyle
+    /// Mermaid 图样式
     public var mermaid: MDMermaidStyle
 
+    /// 创建全局样式
     public init(
         header1: MDTextStyle = MDTextStyle(
             font: { .system(size: 18, weight: .bold) },
@@ -50,7 +73,8 @@ public struct MDStyle {
         ),
         paragraph: MDTextStyle = MDTextStyle(
             font: { .system(size: 16) },
-            color: { .black }
+            color: { .black },
+            lineSpacing: { 6 }
         ),
         link: MDTextStyle = MDTextStyle(
             font: { .system(size: 16) },
@@ -79,6 +103,7 @@ public struct MDStyle {
             )
         ),
         quote: MDQuoteStyle = MDQuoteStyle(
+            body: nil,
             view: MDQuoteStyle.ViewStyle(
                 lineSpacing: { 8 },
                 padding: { [.top: 16, .bottom: 16, .leading: 16, .trailing: 16] },
@@ -316,17 +341,22 @@ public struct MDStyle {
         self.mermaid = mermaid
     }
 
+    /// 默认样式
     nonisolated(unsafe) public static let defaultStyle = MDStyle()
 }
 
+/// 样式目标类型
 public struct MDStyleTarget<Value> {
+    /// 样式字段路径
     let keyPath: WritableKeyPath<MDStyle, Value>
 
+    /// 创建样式目标
     public init(_ keyPath: WritableKeyPath<MDStyle, Value>) {
         self.keyPath = keyPath
     }
 }
 
+/// 文字类样式目标
 public extension MDStyleTarget where Value == MDTextStyle {
     static var header1: MDStyleTarget<MDTextStyle> { MDStyleTarget(\.header1) }
     static var header2: MDStyleTarget<MDTextStyle> { MDStyleTarget(\.header2) }
@@ -338,68 +368,84 @@ public extension MDStyleTarget where Value == MDTextStyle {
     static var link: MDStyleTarget<MDTextStyle> { MDStyleTarget(\.link) }
 }
 
+/// 行内样式目标
 public extension MDStyleTarget where Value == MDInlineTextStyle {
     static var inline: MDStyleTarget<MDInlineTextStyle> { MDStyleTarget(\.inline) }
 }
 
+/// 引用样式目标
 public extension MDStyleTarget where Value == MDQuoteStyle {
     static var quote: MDStyleTarget<MDQuoteStyle> { MDStyleTarget(\.quote) }
 }
 
+/// 列表样式目标
 public extension MDStyleTarget where Value == MDListStyle {
     static var unorderedList: MDStyleTarget<MDListStyle> { MDStyleTarget(\.unorderedList) }
     static var orderedList: MDStyleTarget<MDListStyle> { MDStyleTarget(\.orderedList) }
 }
 
+/// 任务列表样式目标
 public extension MDStyleTarget where Value == MDTaskListStyle {
     static var taskList: MDStyleTarget<MDTaskListStyle> { MDStyleTarget(\.taskList) }
 }
 
+/// 代码块样式目标
 public extension MDStyleTarget where Value == MDCodeStyle {
     static var code: MDStyleTarget<MDCodeStyle> { MDStyleTarget(\.code) }
 }
 
+/// 图片样式目标
 public extension MDStyleTarget where Value == MDImageStyle {
     static var image: MDStyleTarget<MDImageStyle> { MDStyleTarget(\.image) }
 }
 
+/// 表格样式目标
 public extension MDStyleTarget where Value == MDTableStyle {
     static var table: MDStyleTarget<MDTableStyle> { MDStyleTarget(\.table) }
 }
 
+/// 分割线样式目标
 public extension MDStyleTarget where Value == MDDividerStyle {
     static var divider: MDStyleTarget<MDDividerStyle> { MDStyleTarget(\.divider) }
 }
 
+/// 脚注样式目标
 public extension MDStyleTarget where Value == MDFootnoteStyle {
     static var footnote: MDStyleTarget<MDFootnoteStyle> { MDStyleTarget(\.footnote) }
 }
 
+/// 数学公式样式目标
 public extension MDStyleTarget where Value == MDMathStyle {
     static var mathInline: MDStyleTarget<MDMathStyle> { MDStyleTarget(\.mathInline) }
     static var mathBlock: MDStyleTarget<MDMathStyle> { MDStyleTarget(\.mathBlock) }
 }
 
+/// Mermaid 样式目标
 public extension MDStyleTarget where Value == MDMermaidStyle {
     static var mermaid: MDStyleTarget<MDMermaidStyle> { MDStyleTarget(\.mermaid) }
 }
 
+/// 样式环境键
 private struct MDStyleEnvironmentKey: EnvironmentKey {
     nonisolated(unsafe) static let defaultValue = MDStyle.defaultStyle
 }
 
+/// 环境变量扩展
 public extension EnvironmentValues {
+    /// Markdown 样式
     var mdStyle: MDStyle {
         get { self[MDStyleEnvironmentKey.self] }
         set { self[MDStyleEnvironmentKey.self] = newValue }
     }
 }
 
+/// 局部样式修改器
 private struct MDPartStyleModifier<Value>: ViewModifier {
     @Environment(\.mdStyle) private var style
     let target: MDStyleTarget<Value>
     let update: (inout Value) -> Void
 
+    /// 应用局部样式
     func body(content: Content) -> some View {
         var updated = style
         update(&updated[keyPath: target.keyPath])
@@ -408,10 +454,12 @@ private struct MDPartStyleModifier<Value>: ViewModifier {
 }
 
 
+/// 全局样式修改器
 private struct MDStyleModifier: ViewModifier {
     @Environment(\.mdStyle) private var style
     let update: (inout MDStyle) -> Void
     
+    /// 应用全局样式
     func body(content: Content) -> some View {
         var updated = style
         update(&updated)
@@ -419,11 +467,14 @@ private struct MDStyleModifier: ViewModifier {
     }
 }
 
+/// View 样式扩展
 public extension View {
+    /// 设置整体 Markdown 样式
     func mdStyle(_ style: MDStyle) -> some View {
         environment(\.mdStyle, style)
     }
 
+    /// 修改指定样式字段
     func onMarkdownStyle<Value>(
         for target: MDStyleTarget<Value>,
         _ update: @escaping (inout Value) -> Void
@@ -431,6 +482,7 @@ public extension View {
         modifier(MDPartStyleModifier(target: target, update: update))
     }
     
+    /// 修改整体 Markdown 样式
     func onMarkdownStyle(
         _ update: @escaping (inout MDStyle) -> Void
     ) -> some View {

@@ -4,11 +4,10 @@ import LaTeXSwiftUI
 
 public struct MDBlockView: View {
     let block: MDBlock
-    let style: MDStyle
+    @Environment(\.mdStyle) private var style
     
-    public init(block: MDBlock, style: MDStyle) {
+    public init(block: MDBlock) {
         self.block = block
-        self.style = style
     }
     
     public var body: some View {
@@ -84,7 +83,6 @@ public struct MDBlockView: View {
                                     ForEach(item.blocks.indices, id: \.self) { blockIndex in
                                         MDRenderer.makeBlockView(
                                             block: item.blocks[blockIndex],
-                                            style: style
                                         )
                                     }
                                 }
@@ -126,7 +124,6 @@ public struct MDBlockView: View {
                                     ForEach(item.blocks.indices, id: \.self) { blockIndex in
                                         MDRenderer.makeBlockView(
                                             block: item.blocks[blockIndex],
-                                            style: style
                                         )
                                     }
                                 }
@@ -167,7 +164,6 @@ public struct MDBlockView: View {
                                     ForEach(item.blocks.indices, id: \.self) { blockIndex in
                                         MDRenderer.makeBlockView(
                                             block: item.blocks[blockIndex],
-                                            style: style
                                         )
                                     }
                                 }

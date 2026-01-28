@@ -2,7 +2,6 @@ import SwiftUI
 import MDKit
 
 struct ContentView: View {
-    @Environment(\.mdStyle) private var mdStyle
     let markdown = ##"""
     # H1：**粗体** / *斜体* / ***粗斜体*** / ~~删除线~~ / `inline code`
     
@@ -197,11 +196,10 @@ struct ContentView: View {
     
     var body: some View {
         ScrollView(.vertical) {
-            VStack(alignment: .leading, spacing: 0) {
+            LazyVStack(alignment: .leading, spacing: 0) {
                 ForEach(items, id: \.id) { item in
                     MDRenderer.makeBlockView(
                         block: item.block,
-                        style: mdStyle
                     )
                 }
                 .padding(.vertical, 6)
@@ -218,21 +216,28 @@ struct ContentView: View {
         .task {
             await startStreamingMarkdown()
         }
+        .onMarkdownStyle(for: .header1) { style in
+            style.color = { .blue }
+            style.font = { .system(size: 28, weight: .bold) }
+        }
+        .onMarkdownStyle(for: .paragraph) { style in
+            style.lineSpacing = { 6 }
+        }
     }
     
     private func startStreamingMarkdown() async {
-//        items = await markdown.mdItems()
-                Task {
-                    var streamedMarkdown: String = ""
-                    for ch in markdown {
-                        try? await Task.sleep(nanoseconds: 30_000_000)
-                        streamedMarkdown.append(ch)
-                        let decodeItems = await streamedMarkdown.mdItems()
-                        await MainActor.run {
-                            items = decodeItems
-                        }
-                    }
-                }
+        items = await markdown.mdItems()
+//                Task {
+//                    var streamedMarkdown: String = ""
+//                    for ch in markdown {
+//                        try? await Task.sleep(nanoseconds: 30_000_000)
+//                        streamedMarkdown.append(ch)
+//                        let decodeItems = await streamedMarkdown.mdItems()
+//                        await MainActor.run {
+//                            items = decodeItems
+//                        }
+//                    }
+//                }
     }
 }
 

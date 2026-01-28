@@ -2,10 +2,18 @@
 
 import SwiftUI
 
-extension View {
-    public func mdBranchView<Content: View>(@ViewBuilder transform: (Self) -> Content) -> some View {
+public extension View {
+    func mdBranchView<Content: View>(@ViewBuilder transform: (Self) -> Content) -> some View {
         transform(self)
     }
+    
+    func ereaseToAnyView() -> AnyView {
+        AnyView(self)
+    }
+    
+}
+
+extension View {
     
     func radiusBorder(style: MDBorderStyle) -> some View {
         overlay(

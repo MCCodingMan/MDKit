@@ -46,19 +46,8 @@ MDKit 由两部分组成：
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/your-org/MDKit.git", from: "0.1.0")
+    .package(url: "https://github.com/MCCodingMan/MDKit", .branch: "main")
 ]
-```
-
-然后在 target 中添加依赖：
-
-```swift
-.target(
-    name: "YourApp",
-    dependencies: [
-        "MDKit"
-    ]
-)
 ```
 
 ### 如何使用
@@ -83,9 +72,9 @@ struct MarkdownScreen: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+            LazyVStack(alignment: .leading, spacing: 12) {
                 ForEach(items) { item in
-                    MDRenderer.makeBlockView(block: item.block, style: .defaultStyle)
+                    MDRenderer.makeBlockView(block: item.block)
                 }
             }
             .padding()
@@ -136,13 +125,14 @@ let customStyle = MDStyle(
     )
 )
 
-MDRenderer.makeBlockView(block: item.block, style: customStyle)
+MDRenderer.makeBlockView(block: item.block)
+    .environment(\.mdStyle, customStyle)
 ```
 
 方式二：只修改某一部分样式
 
 ```swift
-MDRenderer.makeBlockView(block: item.block, style: .defaultStyle)
+MDRenderer.makeBlockView(block: item.block)
     .onMarkdownStyle(for: .code) { style in
         style.view.languageView.text = MDTextStyle(
             font: { .system(size: 12, weight: .semibold) },
@@ -289,7 +279,7 @@ MDRenderer.makeBlockView(block: item.block, style: .defaultStyle)
 方式三：自定义渲染视图
 
 ```swift
-MDRenderer.makeBlockView(block: item.block, style: .defaultStyle)
+MDRenderer.makeBlockView(block: item.block)
     .onMarkdownStyle(for: .quote) { style in
         style.body = { context in
             VStack(alignment: .leading, spacing: 8) {

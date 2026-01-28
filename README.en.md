@@ -1,6 +1,6 @@
 # MDKit
 
-MDKit is a SwiftUI-based Markdown rendering library. It parses Markdown into structured blocks and ships a highly customizable style system for headings, paragraphs, quotes, lists, code blocks, tables, math, footnotes, and more. It targets iOS 17+ SwiftUI apps.
+MDKit is a SwiftUI-based Markdown rendering library. It parses Markdown into structured blocks and ships a highly customizable style system for headings, paragraphs, quotes, lists, code blocks, tables, math, footnotes, and more. It targets iOS 16+ SwiftUI apps.
 
 ## English
 
@@ -35,7 +35,7 @@ Supported block types:
 
 ### Requirements
 
-- iOS 17+
+- iOS 16+
 - Swift 6.2 (matches Package.swift)
 
 ### Installation

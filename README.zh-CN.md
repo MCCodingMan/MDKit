@@ -1,5 +1,7 @@
 # MDKit
 
+[English docs](README.en.md)
+
 MDKit 是一个基于 SwiftUI 的 Markdown 渲染组件库。它将 Markdown 解析为结构化块（blocks），并提供一套可高度定制的样式系统，用于渲染标题、段落、引用、列表、代码块、表格、数学公式、脚注等内容。适用于 iOS 16 及以上的 SwiftUI 项目。
 
 ## 中文

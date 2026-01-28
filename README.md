@@ -44,7 +44,7 @@ Swift Package Manager:
 
 ```swift
 dependencies: [
-    .package(url: "git@github.com:MCCodingMan/MDKit", .branch: "main")
+    .package(url: "https://github.com/MCCodingMan/MDKit", .branch: "main")
 ]
 ```
 

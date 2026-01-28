@@ -44,19 +44,8 @@ Swift Package Manager:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/your-org/MDKit.git", from: "0.1.0")
+    .package(url: "git@github.com:MCCodingMan/MDKit", .branch: "main")
 ]
-```
-
-Add to your target:
-
-```swift
-.target(
-    name: "YourApp",
-    dependencies: [
-        "MDKit"
-    ]
-)
 ```
 
 ## Usage
@@ -81,9 +70,9 @@ struct MarkdownScreen: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+            LazyVStack(alignment: .leading, spacing: 12) {
                 ForEach(items) { item in
-                    MDRenderer.makeBlockView(block: item.block, style: .defaultStyle)
+                    MDRenderer.makeBlockView(block: item.block)
                 }
             }
             .padding()
@@ -134,13 +123,17 @@ let customStyle = MDStyle(
     )
 )
 
-MDRenderer.makeBlockView(block: item.block, style: customStyle)
+MDRenderer.makeBlockView(block: item.block)
+//    .environment(\.mdStyle, customStyle)
+    .onMarkdownStyle { style  in
+        style = customStyle
+    }
 ```
 
 Option 2: Update a single style target
 
 ```swift
-MDRenderer.makeBlockView(block: item.block, style: .defaultStyle)
+MDRenderer.makeBlockView(block: item.block)
     .onMarkdownStyle(for: .code) { style in
         style.view.languageView.text = MDTextStyle(
             font: { .system(size: 12, weight: .semibold) },
@@ -286,7 +279,7 @@ Notes:
 Option 3: Provide a custom view
 
 ```swift
-MDRenderer.makeBlockView(block: item.block, style: .defaultStyle)
+MDRenderer.makeBlockView(block: item.block)
     .onMarkdownStyle(for: .quote) { style in
         style.body = { context in
             VStack(alignment: .leading, spacing: 8) {

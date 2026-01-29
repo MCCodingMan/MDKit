@@ -1,6 +1,15 @@
 {
-  "originHash" : "5bda2038b64abea4ba8695f052efb5afd4519ed1b47827870cc355bb7cd8b484",
+  "originHash" : "9ad48380fe460e491119423f78c3aa1ce8defb7ff3589a1951608e4c1b1ef2d5",
   "pins" : [
+    {
+      "identity" : "highlightr",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/raspu/Highlightr",
+      "state" : {
+        "branch" : "master",
+        "revision" : "ae9aa92a70e627298e31172124217c000e30fea3"
+      }
+    },
     {
       "identity" : "latexswiftui",
       "kind" : "remoteSourceControl",

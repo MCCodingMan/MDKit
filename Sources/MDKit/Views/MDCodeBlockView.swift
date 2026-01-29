@@ -17,6 +17,13 @@ struct MDCodeBlockView: View {
             Text(highlightedText)
                 .font(style.view.contentView.text.font())
                 .foregroundStyle(style.view.contentView.text.color())
+                .mdBranchView {
+                    if let lineSpacing = style.view.contentView.text.lineSpacing {
+                        $0.lineSpacing(lineSpacing())
+                    } else {
+                        $0
+                    }
+                }
                 .fixedSize(horizontal: true, vertical: false)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .mdEdgePadding(style.view.contentView.padding())

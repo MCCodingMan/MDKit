@@ -10,6 +10,7 @@
 		98277E582F29AA9A008CA1C0 /* MDKit in Frameworks */ = {isa = PBXBuildFile; productRef = 98277E572F29AA9A008CA1C0 /* MDKit */; };
 		98277E5C2F29AD03008CA1C0 /* MDKit in Frameworks */ = {isa = PBXBuildFile; productRef = 98277E5B2F29AD03008CA1C0 /* MDKit */; };
 		98277FB52F2A1A73008CA1C0 /* MDKit in Frameworks */ = {isa = PBXBuildFile; productRef = 98277FB42F2A1A73008CA1C0 /* MDKit */; };
+		986B16942F2AF8AB00E04AF5 /* Highlightr in Frameworks */ = {isa = PBXBuildFile; productRef = 986B16932F2AF8AB00E04AF5 /* Highlightr */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +30,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				986B16942F2AF8AB00E04AF5 /* Highlightr in Frameworks */,
 				98277FB52F2A1A73008CA1C0 /* MDKit in Frameworks */,
 				98277E5C2F29AD03008CA1C0 /* MDKit in Frameworks */,
 				98277E582F29AA9A008CA1C0 /* MDKit in Frameworks */,
@@ -42,6 +44,7 @@
 			isa = PBXGroup;
 			children = (
 				98277E4A2F29A985008CA1C0 /* MDKitDemo */,
+				986B16922F2AF8AB00E04AF5 /* Frameworks */,
 				98277E492F29A985008CA1C0 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -52,6 +55,13 @@
 				98277E482F29A985008CA1C0 /* MDKitDemo.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		986B16922F2AF8AB00E04AF5 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -77,6 +87,7 @@
 				98277E572F29AA9A008CA1C0 /* MDKit */,
 				98277E5B2F29AD03008CA1C0 /* MDKit */,
 				98277FB42F2A1A73008CA1C0 /* MDKit */,
+				986B16932F2AF8AB00E04AF5 /* Highlightr */,
 			);
 			productName = MDKitDemo;
 			productReference = 98277E482F29A985008CA1C0 /* MDKitDemo.app */;
@@ -108,6 +119,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				98277FB32F2A1A73008CA1C0 /* XCLocalSwiftPackageReference "../MDKit" */,
+				986B168B2F2AF81200E04AF5 /* XCRemoteSwiftPackageReference "Highlightr" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 98277E492F29A985008CA1C0 /* Products */;
@@ -357,6 +369,17 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		986B168B2F2AF81200E04AF5 /* XCRemoteSwiftPackageReference "Highlightr" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/raspu/Highlightr";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		98277E572F29AA9A008CA1C0 /* MDKit */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -369,6 +392,11 @@
 		98277FB42F2A1A73008CA1C0 /* MDKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MDKit;
+		};
+		986B16932F2AF8AB00E04AF5 /* Highlightr */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 986B168B2F2AF81200E04AF5 /* XCRemoteSwiftPackageReference "Highlightr" */;
+			productName = Highlightr;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

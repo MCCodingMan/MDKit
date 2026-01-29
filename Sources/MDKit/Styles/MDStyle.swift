@@ -186,7 +186,7 @@ public struct MDStyle {
                         color: { .white }
                     ),
                     padding: { [.leading: 16, .trailing: 16, .top: 8, .bottom: 8] },
-                    background: { .black.opacity(0.88) }
+                    background: { Color(red: 249 / 255.0, green: 250 / 255.0, blue: 250 / 255.0).opacity(0.04) }
                 ),
                 contentView: MDCodeStyle.ContentViewStyle(
                     view: nil,
@@ -202,7 +202,7 @@ public struct MDStyle {
                 )
             ),
             container: MDCodeStyle.ContainerStyle(
-                backgroundColor: { .black.opacity(0.7) },
+                backgroundColor: { Color(red: 20 / 255.0, green: 20 / 255.0, blue: 24 / 255.0) },
                 cornerRadius: { 6 },
                 border: MDBorderStyle(
                     color: { .black.opacity(0.5) },

@@ -1,5 +1,22 @@
 import SwiftUI
 import MDKit
+import Highlightr
+
+final class MDHighlightr {
+    static private let shared = MDHighlightr()
+    
+    private let highlightr: Highlightr?
+    
+    private init() {
+        let highlightr = Highlightr()
+        highlightr?.setTheme(to: "monokai-sublime")
+        self.highlightr = highlightr
+    }
+    
+    static func lightr(for code: String, language: String?) -> NSAttributedString {
+        shared.highlightr?.highlight(code, as: language, fastRender: true) ?? NSAttributedString(string: code)
+    }
+}
 
 struct ContentView: View {
     let markdown = ##"""
@@ -222,6 +239,12 @@ struct ContentView: View {
         }
         .onMarkdownStyle(for: .paragraph) { style in
             style.lineSpacing = { 6 }
+        }
+        .onMarkdownStyle(for: .code) { style in
+            style.view.contentView.highlightCode = { code, language in
+                MDHighlightr.lightr(for: code, language: language)
+            }
+            style.view.contentView.text.lineSpacing = { 6 }
         }
     }
     

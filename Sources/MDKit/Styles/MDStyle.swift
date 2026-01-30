@@ -225,7 +225,7 @@ public struct MDStyle {
                 cornerRadius: { 8 },
                 titleSpacing: { 6 },
                 titleAlignment: { .center },
-                placeholderHeight: { 0 }
+                height: { nil }
             )
         ),
         table: MDTableStyle = MDTableStyle(

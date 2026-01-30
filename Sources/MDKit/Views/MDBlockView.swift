@@ -210,36 +210,39 @@ public struct MDBlockView: View {
             if let body = style.image.body {
                 body(MDImageContext(alt: alt, url: url, title: title))
             } else {
-                VStack(alignment: .leading, spacing: style.image.layout.titleSpacing()) {
+                VStack(spacing: style.image.layout.titleSpacing()) {
                     MDCachedAsyncImage(url: URL(string: url)) { phase in
                         switch phase {
                         case .empty:
                             if let loadingView = style.image.view.loadingView {
                                 loadingView()
                             } else {
-                                ProgressView()
+                                Color.gray.opacity(0.1)
+                                    .overlay {
+                                        ProgressView()
+                                    }
                             }
                         case .success(let image):
                             image
                                 .resizable()
                                 .scaledToFit()
-                                .cornerRadius(style.image.layout.cornerRadius())
                         case .failure:
                             if let failureView = style.image.view.failureView {
                                 failureView()
                             } else {
-                                Color.gray.opacity(0.2)
-                                    .frame(height: style.image.layout.placeholderHeight())
+                                Color.gray.opacity(0.1)
                             }
                         @unknown default:
                             if let failureView = style.image.view.failureView {
                                 failureView()
                             } else {
-                                Color.gray.opacity(0.2)
-                                    .frame(height: style.image.layout.placeholderHeight())
+                                Color.gray.opacity(0.1)
                             }
                         }
                     }
+                    .cornerRadius(style.image.layout.cornerRadius())
+                    .frame(height: style.image.layout.height())
+                    .frame(maxWidth: .infinity)
                     if let title, title.isEmpty == false {
                         Text(title)
                             .font(style.image.text.font())

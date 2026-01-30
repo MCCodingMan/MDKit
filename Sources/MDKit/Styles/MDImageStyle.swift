@@ -45,14 +45,14 @@ extension MDImageStyle {
         /// 标题对齐
         public var titleAlignment: () -> Alignment
         /// 占位高度
-        public var placeholderHeight: () -> CGFloat
+        public var height: () -> CGFloat?
         
         /// 创建图片布局样式
-        public init(cornerRadius: @escaping () -> CGFloat, titleSpacing: @escaping () -> CGFloat, titleAlignment: @escaping () -> Alignment, placeholderHeight: @escaping () -> CGFloat) {
+        public init(cornerRadius: @escaping () -> CGFloat, titleSpacing: @escaping () -> CGFloat, titleAlignment: @escaping () -> Alignment, height: @escaping () -> CGFloat?) {
             self.cornerRadius = cornerRadius
             self.titleSpacing = titleSpacing
             self.titleAlignment = titleAlignment
-            self.placeholderHeight = placeholderHeight
+            self.height = height
         }
     }
 }

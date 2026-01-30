@@ -1,13 +1,16 @@
 
 import Foundation
 
+/// LaTeX 标记解析器，用于定位并配对公式分隔符
 struct MDLatexParser {
+    /// 当前标记在原始字符串中的范围
     let range: Range<String.Index>
+    /// 当前标记的原始文本（如 "$"、"$$"、"\\("、"\\)"）
     let tag: Substring
 }
 
 extension MDLatexParser {
-    
+    /// 判断当前标记是否与另一个标记形成合法的公式边界
     func pairing(parser: MDLatexParser) -> Bool {
         if self.tag == "$$" && parser.tag == "$$" {
             return true
@@ -26,8 +29,7 @@ extension MDLatexParser {
 }
 
 extension MDLatexParser {
-    
-    // 定义一个函数来查找特殊字符的范围
+    /// 查找文本中的公式分隔符范围
     static func findSpecialCharacterRanges(in text: String) -> [Range<String.Index>] {
         do {
             // 使用原始字符串定义正则表达式模式
@@ -107,6 +109,7 @@ extension MDLatexParser {
         }
     }
     
+    /// 反向解码公式占位内容，恢复原始换行
     public static func removeNewLinePlaceholder(text: String) -> String {
         if let data = Data(base64Encoded: text) {
             return String(data: data, encoding: .utf8) ?? text
@@ -117,7 +120,7 @@ extension MDLatexParser {
 }
 
 extension MDLatexParser {
-    // LaTeX 常用命令列表
+    /// LaTeX 常用命令列表
     static let latexCommands = [
         "\\frac", "\\sqrt", "\\sum", "\\int", "\\prod",
         "\\alpha", "\\beta", "\\gamma", "\\delta", "\\theta",
@@ -127,7 +130,7 @@ extension MDLatexParser {
         "\\leq", "\\geq", "\\neq", "\\approx", "\\cdot", "\\boxed", "\\dfrac"
     ]
     
-    // 数学公式中允许的特殊字符
+    /// 数学公式中允许的特殊字符
     static let allowedSpecialChars = Set<Character>([
         "+", "-", "*", "/", "=", ">", "<", "±", "∑", "∫",
         "≠", "≈", "≤", "≥", "∞", "∂", "→", "←", "↑", "↓",
@@ -136,6 +139,7 @@ extension MDLatexParser {
         "6", "7", "8", "9", "0", "1"  // 允许数字作为公式的一部分
     ])
     
+    /// 判断文本是否符合公式内容特征
     static func isMathFormula(_ text: String) -> Bool {
         // 去掉首尾的 $ 符号
         let formula = text.trimmingCharacters(in: CharacterSet(charactersIn: "$"))

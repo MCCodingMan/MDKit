@@ -1,22 +1,92 @@
 import Foundation
 import Markdown
 
+/// Markdown 解析器实现
 public struct MDParser: MDParsing {
     public init() {}
     
+    /// 解析 Markdown 文本为块级文档结构
     public func parse(markdown: String) -> MDDocument {
-        let processed = MDLatexParser.process(in: markdown)
-        let extraction = extractFootnotes(from: processed)
-        let document = Document(parsing: extraction.markdown)
-        let parsedBlocks = blocks(from: document) + extraction.footnotes
-        return MDDocument(blocks: parsedBlocks)
+        MDDocument(blocks: parseBlocks(markdown: markdown))
     }
 }
 
+public final class MDCachedParser: MDParsing {
+    nonisolated(unsafe) public static let shared = MDCachedParser()
+    nonisolated(unsafe) private static var cachedMarkdown: String = ""
+    nonisolated(unsafe) private static var cachedBlocks: [MDBlock] = []
+    nonisolated(unsafe) private static var stablePrefixUTF16Count: Int = 0
+    nonisolated(unsafe) private static var stablePrefixBlocks: [MDBlock] = []
+    
+    public init() {}
+    
+    public func parse(markdown: String) -> MDDocument {
+        if markdown == MDCachedParser.cachedMarkdown {
+            print("MDCachedParser: hit full cache")
+            return MDDocument(blocks: MDCachedParser.cachedBlocks)
+        }
+        if MDCachedParser.cachedMarkdown.isEmpty {
+            print("MDCachedParser: cold start full parse")
+            return parseFull(markdown: markdown)
+        }
+        if markdown.hasPrefix(MDCachedParser.cachedMarkdown) {
+            let appended = String(markdown.dropFirst(MDCachedParser.cachedMarkdown.count))
+            if needsFullReparse(appended: appended) {
+                print("MDCachedParser: appended requires full parse")
+                return parseFull(markdown: markdown)
+            }
+            if MDCachedParser.stablePrefixUTF16Count == 0 || MDCachedParser.stablePrefixBlocks.isEmpty {
+                print("MDCachedParser: missing stable prefix, full parse")
+                return parseFull(markdown: markdown)
+            }
+            let totalUTF16 = markdown.utf16.count
+            let startUTF16 = min(MDCachedParser.stablePrefixUTF16Count, totalUTF16)
+            let startIndex = String.Index(utf16Offset: startUTF16, in: markdown)
+            let suffix = String(markdown[startIndex...])
+            let suffixBlocks = parseBlocks(markdown: suffix)
+            let merged = MDCachedParser.stablePrefixBlocks + suffixBlocks
+            MDCachedParser.cachedMarkdown = markdown
+            MDCachedParser.cachedBlocks = merged
+            updateStablePrefix(markdown: markdown, blocks: merged)
+            print("MDCachedParser: reuse prefix cache, parse suffix")
+            return MDDocument(blocks: merged)
+        }
+        print("MDCachedParser: content changed, full parse")
+        return parseFull(markdown: markdown)
+    }
+    
+    private func parseFull(markdown: String) -> MDDocument {
+        let blocks = parseBlocks(markdown: markdown)
+        MDCachedParser.cachedMarkdown = markdown
+        MDCachedParser.cachedBlocks = blocks
+        updateStablePrefix(markdown: markdown, blocks: blocks)
+        return MDDocument(blocks: blocks)
+    }
+    
+    private func updateStablePrefix(markdown: String, blocks: [MDBlock]) {
+        let totalUTF16 = markdown.utf16.count
+        let prefixUTF16 = min(MDKit.stablePrefixUTF16Count(in: markdown), totalUTF16)
+        MDCachedParser.stablePrefixUTF16Count = prefixUTF16
+        if prefixUTF16 == 0 {
+            MDCachedParser.stablePrefixBlocks = []
+            return
+        }
+        if prefixUTF16 == totalUTF16 {
+            MDCachedParser.stablePrefixBlocks = blocks
+            return
+        }
+        let endIndex = String.Index(utf16Offset: prefixUTF16, in: markdown)
+        let prefix = String(markdown[..<endIndex])
+        MDCachedParser.stablePrefixBlocks = parseBlocks(markdown: prefix)
+    }
+}
+
+/// 将 Markdown AST 遍历为块级模型的访问器
 private struct BlocksVisitor: MarkupVisitor {
     typealias Result = [MDBlock]
     var depthPath: [Int] = []
     
+    /// 默认遍历逻辑，递归处理所有子节点
     mutating func defaultVisit(_ markup: Markup) -> [MDBlock] {
         var result: [MDBlock] = []
         for child in markup.children {
@@ -25,14 +95,17 @@ private struct BlocksVisitor: MarkupVisitor {
         return result
     }
     
+    /// 处理标题节点
     mutating func visitHeading(_ heading: Heading) -> [MDBlock] {
         [.heading(level: heading.level, text: inlineText(from: heading))]
     }
     
+    /// 处理段落节点
     mutating func visitParagraph(_ paragraph: Paragraph) -> [MDBlock] {
         blocks(from: paragraph)
     }
     
+    /// 处理引用块，将标题与段落合并为行文本
     mutating func visitBlockQuote(_ blockQuote: BlockQuote) -> [MDBlock] {
         var lines: [String] = []
         for child in blockQuote.children {
@@ -50,6 +123,7 @@ private struct BlocksVisitor: MarkupVisitor {
         return lines.isEmpty ? [] : [.quote(lines: lines)]
     }
     
+    /// 处理无序列表，识别任务列表与普通列表
     mutating func visitUnorderedList(_ unorderedList: UnorderedList) -> [MDBlock] {
         let parsed = collectUnorderedItems(from: unorderedList, depthPath: depthPath)
         let hasCheckbox = parsed.contains { $0.checked != nil }
@@ -63,6 +137,7 @@ private struct BlocksVisitor: MarkupVisitor {
         return listItems.isEmpty ? [] : [.unorderedList(items: listItems)]
     }
     
+    /// 处理有序列表，识别任务列表与普通列表
     mutating func visitOrderedList(_ orderedList: OrderedList) -> [MDBlock] {
         let parsed = collectOrderedItems(from: orderedList, depthPath: depthPath)
         let hasCheckbox = parsed.contains { $0.checked != nil }
@@ -76,20 +151,24 @@ private struct BlocksVisitor: MarkupVisitor {
         return listItems.isEmpty ? [] : [.orderedList(items: listItems)]
     }
     
+    /// 处理代码块
     mutating func visitCodeBlock(_ codeBlock: CodeBlock) -> [MDBlock] {
         let language = codeBlock.language ?? ""
         let code = codeBlock.code.trimmingCharacters(in: .newlines)
         return [.code(language: language.isEmpty ? nil : language, code: code)]
     }
     
+    /// 处理分割线
     mutating func visitThematicBreak(_ thematicBreak: ThematicBreak) -> [MDBlock] {
         [.divider]
     }
     
+    /// 处理 HTML 块
     mutating func visitHTMLBlock(_ htmlBlock: HTMLBlock) -> [MDBlock] {
         [.html(htmlBlock.rawHTML)]
     }
     
+    /// 处理表格，规范表头与表体
     mutating func visitTable(_ table: Table) -> [MDBlock] {
         var rows = Array(table.body.rows).map { row in
             Array(row.cells).map { inlineText(from: $0) }
@@ -104,21 +183,48 @@ private struct BlocksVisitor: MarkupVisitor {
         return [.table(headers: headerCells, rows: rows)]
     }
     
+    /// 处理图片
     mutating func visitImage(_ image: Image) -> [MDBlock] {
         [.image(alt: inlineText(from: image), url: image.source ?? "", title: image.title)]
     }
     
+    /// 处理链接
     mutating func visitLink(_ link: Link) -> [MDBlock] {
         let title = inlineText(from: link)
         return [.link(title: title, url: link.destination ?? "")]
     }
 }
 
+/// 将 Markup 节点转换为块级列表
 private func blocks(from markup: Markup, depthPath: [Int] = []) -> [MDBlock] {
     var visitor = BlocksVisitor(depthPath: depthPath)
     return markup.accept(&visitor)
 }
 
+private func parseBlocks(markdown: String) -> [MDBlock] {
+    let processed = MDLatexParser.process(in: markdown)
+    let document = Document(parsing: processed)
+    let blocks = blocks(from: document)
+    let frontBlocks = blocks.filter { block in
+        switch block {
+        case .footnote:
+            return false
+        default:
+            return true
+        }
+    }
+    let footnoteBlocks = blocks.filter { block in
+        switch block {
+        case .footnote:
+            return true
+        default:
+            return false
+        }
+    }
+    return frontBlocks + footnoteBlocks
+}
+
+/// 将段落拆分为块级元素，识别图像与公式
 private func blocks(from paragraph: Paragraph) -> [MDBlock] {
     let children = Array(paragraph.children)
     var blocks: [MDBlock] = []
@@ -130,6 +236,11 @@ private func blocks(from paragraph: Paragraph) -> [MDBlock] {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         buffer.removeAll()
         guard trimmed.isEmpty == false else { return }
+        let footnotes = footnoteDefinitions(from: text)
+        if footnotes.isEmpty == false {
+            blocks.append(contentsOf: footnotes)
+            return
+        }
         if let math = mathContent(from: text) {
             if math {
                 blocks.append(.mathBlock(text))
@@ -153,6 +264,7 @@ private func blocks(from paragraph: Paragraph) -> [MDBlock] {
     return blocks
 }
 
+/// 将内联节点展开为 Markdown 文本
 private func inlineText(from markup: Markup) -> String {
     if let text = markup as? Text {
         return text.string
@@ -186,6 +298,7 @@ private func inlineText(from markup: Markup) -> String {
     return markup.children.map { inlineText(from: $0) }.joined()
 }
 
+/// 判断文本是否为数学内容，true 为块公式，false 为行内公式
 private func mathContent(from text: String) -> Bool? {
     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
     if trimmed.hasPrefix("\\["), trimmed.hasSuffix("\\]") {
@@ -248,6 +361,53 @@ private func mathContent(from text: String) -> Bool? {
     return nil
 }
 
+private func footnoteDefinitions(from text: String) -> [MDBlock] {
+    let lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+    guard lines.isEmpty == false else { return [] }
+    var blocks: [MDBlock] = []
+    var currentLabel: String?
+    var contentLines: [String] = []
+    
+    func flush() {
+        guard let label = currentLabel else { return }
+        let content = contentLines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+        if label.isEmpty == false, content.isEmpty == false {
+            blocks.append(.footnote(label: label, content: content))
+        }
+        currentLabel = nil
+        contentLines = []
+    }
+    
+    for line in lines {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        if trimmed.hasPrefix("[^"), let markerRange = trimmed.range(of: "]:") {
+            flush()
+            let labelRange = trimmed.index(trimmed.startIndex, offsetBy: 2)..<markerRange.lowerBound
+            let label = String(trimmed[labelRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+            let firstContent = String(trimmed[markerRange.upperBound...]).trimmingCharacters(in: .whitespaces)
+            currentLabel = label
+            if firstContent.isEmpty == false {
+                contentLines.append(firstContent)
+            }
+            continue
+        }
+        if currentLabel != nil {
+            if trimmed.isEmpty {
+                contentLines.append("")
+                continue
+            }
+            if line.hasPrefix("    ") || line.hasPrefix("\t") {
+                contentLines.append(line.trimmingCharacters(in: .whitespaces))
+                continue
+            }
+        }
+        return []
+    }
+    flush()
+    return blocks
+}
+
+/// 提取块级节点的文本内容
 private func blockText(from markup: Markup) -> String {
     if let paragraph = markup as? Paragraph {
         return inlineText(from: paragraph)
@@ -262,6 +422,7 @@ private func blockText(from markup: Markup) -> String {
     return text.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
+/// 列表项的解析结果
 private struct ParsedListItem {
     let text: String
     let depthPath: [Int]
@@ -269,6 +430,7 @@ private struct ParsedListItem {
     let blocks: [MDBlock]
 }
 
+/// 收集无序列表项并保留嵌套路径
 private func collectUnorderedItems(from list: UnorderedList, depthPath: [Int]) -> [ParsedListItem] {
     var result: [ParsedListItem] = []
     let items = list.children.compactMap { $0 as? ListItem }
@@ -281,6 +443,7 @@ private func collectUnorderedItems(from list: UnorderedList, depthPath: [Int]) -
     return result
 }
 
+/// 收集有序列表项并保留嵌套路径
 private func collectOrderedItems(from list: OrderedList, depthPath: [Int]) -> [ParsedListItem] {
     var result: [ParsedListItem] = []
     let items = list.children.compactMap { $0 as? ListItem }
@@ -293,6 +456,7 @@ private func collectOrderedItems(from list: OrderedList, depthPath: [Int]) -> [P
     return result
 }
 
+/// 提取列表项的文本与嵌套块内容
 private func listItemContent(from item: ListItem, depthPath: [Int]) -> (text: String, blocks: [MDBlock]) {
     var textParts: [String] = []
     var nestedBlocks: [MDBlock] = []
@@ -314,6 +478,7 @@ private func listItemContent(from item: ListItem, depthPath: [Int]) -> (text: St
     return (text, nestedBlocks)
 }
 
+/// 读取任务列表的勾选状态
 private func checkboxValue(from item: ListItem) -> Bool? {
     switch item.checkbox {
     case .checked:
@@ -325,6 +490,50 @@ private func checkboxValue(from item: ListItem) -> Bool? {
     }
 }
 
+private func stablePrefixUTF16Count(in markdown: String) -> Int {
+    let lines = markdown.split(separator: "\n", omittingEmptySubsequences: false)
+    var inFencedCode = false
+    var inMathBlock = false
+    var offset = 0
+    var lastBoundary = 0
+    for (index, line) in lines.enumerated() {
+        let lineText = String(line)
+        let trimmed = lineText.trimmingCharacters(in: .whitespaces)
+        if trimmed.hasPrefix("```") || trimmed.hasPrefix("~~~") {
+            inFencedCode.toggle()
+        }
+        if trimmed == "$$" {
+            inMathBlock.toggle()
+        }
+        offset += lineText.utf16.count
+        if index < lines.count - 1 {
+            offset += 1
+        }
+        if trimmed.isEmpty, inFencedCode == false, inMathBlock == false {
+            lastBoundary = offset
+        }
+    }
+    return lastBoundary
+}
+
+private func needsFullReparse(appended: String) -> Bool {
+    if appended.isEmpty {
+        return false
+    }
+    let lines = appended.split(separator: "\n", omittingEmptySubsequences: false)
+    for line in lines {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        if trimmed.hasPrefix("[^"), trimmed.contains("]:") {
+            return true
+        }
+        if trimmed.hasPrefix("["), trimmed.contains("]:") {
+            return true
+        }
+    }
+    return false
+}
+
+/// 提取脚注定义并返回去除脚注后的正文
 private func extractFootnotes(from markdown: String) -> (markdown: String, footnotes: [MDBlock]) {
     let lines = markdown.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
     var output: [String] = []

@@ -14,7 +14,6 @@ public struct MDTaskListContext {
 /// 任务列表样式配置
 public struct MDTaskListStyle: MDContentStyle {
     
-    
     /// 任务标记样式
     public struct MarkerStyle {
         /// 自定义标记视图

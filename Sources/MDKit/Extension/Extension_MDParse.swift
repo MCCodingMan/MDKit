@@ -2,9 +2,8 @@
 import Foundation
 
 public extension String {
-    func mdItems(
-        parser: MDParsing = MDParser()
-    ) async -> [MDBlockItem] {
+    
+    func blockItems(parser: MDParsing = MDParser()) -> [MDBlockItem] {
         let document = parser.parse(markdown: self)
         let mapped = document.blocks.enumerated().map { idx, block in
             return MDBlockItem(block: block, occurrence: idx)

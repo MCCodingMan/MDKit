@@ -168,14 +168,6 @@ struct ContentView: View {
     | 结论 A | 声明式更快搭建 | 复杂布局有时难控 | 细粒度控制强 | 样板代码较多 | SwiftUI：中 | 新项目/跨平台 | 预览强但调试偶有坑 | 新生态增长快 | 依赖系统版本较新 |
     | 结论 B | 状态驱动清晰 | API/行为随系统演进 | 历史悠久资料多 | 维护大型界面成本高 | UIKit：中-高 | 存量项目/深度定制 | 工具链成熟 | 第三方组件海量 | 兼容老系统更好 |
     
-    ---
-    
-    ## HTML
-    
-    <div style="padding:12px;border:1px solid #ddd;border-radius:8px;">
-    <strong>HTML 区块：</strong>
-    <span>这是一段内嵌 HTML，用于展示自定义样式。</span>
-    </div>
     
     ---
     
@@ -246,24 +238,31 @@ struct ContentView: View {
             }
             style.view.contentView.text.lineSpacing = { 6 }
         }
+        .onMarkdownStyle(for: .image) { style in
+            style.layout.height = { 220 }
+        }
     }
     
     private func startStreamingMarkdown() async {
-        items = await markdown.mdItems()
-//                Task {
-//                    var streamedMarkdown: String = ""
-//                    for ch in markdown {
-//                        try? await Task.sleep(nanoseconds: 30_000_000)
-//                        streamedMarkdown.append(ch)
-//                        let decodeItems = await streamedMarkdown.mdItems()
-//                        await MainActor.run {
-//                            items = decodeItems
-//                        }
-//                    }
+        items = markdown.blockItems()
+//        Task {
+//            var appendIndex: Int = 0
+//            while appendIndex < markdown.count {
+//                try? await Task.sleep(nanoseconds: 800_000_000)
+//                let tempAppendIndex = min(appendIndex + 50, markdown.count)
+//                let streamedMarkdown = String(markdown.prefix(tempAppendIndex))
+//                let decodeItems = streamedMarkdown.blockItems(parser: MDCachedParser())
+//                appendIndex = tempAppendIndex
+//                await MainActor.run {
+//                    items = decodeItems
 //                }
+//            }
+//        }
     }
 }
 
 #Preview {
     ContentView()
 }
+
+

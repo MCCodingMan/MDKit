@@ -1,6 +1,6 @@
 import Foundation
 
-public struct MDBlockItem: Identifiable {
+public struct MDBlockItem: Identifiable, Hashable {
     public let id: String
     public let block: MDBlock
     

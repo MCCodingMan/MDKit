@@ -97,7 +97,8 @@ private struct BlocksVisitor: MarkupVisitor {
     
     /// 处理标题节点
     mutating func visitHeading(_ heading: Heading) -> [MDBlock] {
-        [.heading(level: heading.level, text: inlineText(from: heading))]
+        let headingText = inlineText(from: heading)
+        return [.heading(level: heading.level, text: headingText)]
     }
     
     /// 处理段落节点
@@ -265,36 +266,48 @@ private func blocks(from paragraph: Paragraph) -> [MDBlock] {
 }
 
 /// 将内联节点展开为 Markdown 文本
+/// - Parameter markup: 任意内联节点
+/// - Returns: 与节点等价的 Markdown 字符串表示
 private func inlineText(from markup: Markup) -> String {
+    // 纯文本节点，直接返回其字符串内容
     if let text = markup as? Text {
         return text.string
     }
+    // 斜体节点，递归拼接子节点并包裹 *
     if let emphasis = markup as? Emphasis {
-        return "*" + emphasis.children.map { inlineText(from: $0) }.joined() + "*"
+        return "_" + emphasis.children.map { inlineText(from: $0) }.joined() + "_"
     }
+    // 加粗节点，递归拼接子节点并包裹 **
     if let strong = markup as? Strong {
         return "**" + strong.children.map { inlineText(from: $0) }.joined() + "**"
     }
+    // 删除线节点，递归拼接子节点并包裹 ~~
     if let strikethrough = markup as? Strikethrough {
         return "~~" + strikethrough.children.map { inlineText(from: $0) }.joined() + "~~"
     }
+    // 行内代码，使用反引号包裹原始代码
     if let inlineCode = markup as? InlineCode {
         return "`" + inlineCode.code + "`"
     }
+    // 硬换行，保留为换行符
     if markup is LineBreak {
         return "\n"
     }
+    // 软换行，保留为换行符
     if markup is SoftBreak {
         return "\n"
     }
+    // 链接节点，递归生成文本标签并拼接目标地址
     if let link = markup as? Link {
         let label = link.children.map { inlineText(from: $0) }.joined()
         return "[\(label)](\(link.destination ?? ""))"
     }
+    // 图片节点，递归生成 alt 文本并拼接图片地址
     if let image = markup as? Image {
         let alt = image.children.map { inlineText(from: $0) }.joined()
         return "![\(alt)](\(image.source ?? ""))"
     }
+    // 其他内联节点，递归展开其子节点并拼接
     return markup.children.map { inlineText(from: $0) }.joined()
 }
 

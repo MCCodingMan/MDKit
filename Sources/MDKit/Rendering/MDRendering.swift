@@ -7,4 +7,20 @@ public protocol MDRendering {
     static func makeBlockView(
         block: MDBlock
     ) -> MDBlockView
+    
+    static func makeBlockView(
+        item: MDBlockItem
+    ) -> MDBlockView
+}
+
+public extension MDRendering {
+    
+    /// 创建块级视图
+    static func makeBlockView(
+        block: MDBlock
+    ) -> MDBlockView {
+        MDBlockView(
+            item: MDBlockItem(block: block, occurrence: 0),
+        )
+    }
 }

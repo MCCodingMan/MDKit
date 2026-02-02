@@ -3,12 +3,33 @@ import Foundation
 
 public extension String {
     
-    func blockItems(parser: MDParsing = MDParser()) -> [MDBlockItem] {
+    func blockItems(parser: MDParsing = MDParser(), id: String = UUID().uuidString) -> [MDBlockItem] {
         let document = parser.parse(markdown: self)
+        var oldItems = ParseManager.items(for: id)
         let mapped = document.blocks.enumerated().map { idx, block in
-            return MDBlockItem(block: block, occurrence: idx)
+            if let oldItem = oldItems.first(where: { $0.id == "\(idx)" }) {
+                oldItem.updateBlock(block)
+                return oldItem
+            } else {
+                return MDBlockItem(block: block, occurrence: idx)
+            }
         }
+        ParseManager.save(mapped, for: id)
         return mapped
+    }
+}
+
+class ParseManager {
+    nonisolated(unsafe) static private let shared = ParseManager()
+    
+    private var parsedMap: [String: [MDBlockItem]] = [:]
+    
+    static func save(_ items: [MDBlockItem], for id: String) {
+        shared.parsedMap[id] = items
+    }
+    
+    static func items(for id: String) -> [MDBlockItem] {
+        shared.parsedMap[id] ?? []
     }
 }
 

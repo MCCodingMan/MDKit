@@ -3,11 +3,16 @@ import UIKit
 import LaTeXSwiftUI
 
 public struct MDBlockView: View {
-    let block: MDBlock
+//    let block: MDBlock
+    @ObservedObject var blockItem: MDBlockItem
     @Environment(\.mdStyle) private var style
     
-    public init(block: MDBlock) {
-        self.block = block
+//    public init(block: MDBlock) {
+//        self.block = block
+//    }
+    
+    public init(item: MDBlockItem) {
+        self.blockItem = item
     }
     
     public var body: some View {
@@ -16,7 +21,7 @@ public struct MDBlockView: View {
     
     @ViewBuilder
     private var blockView: some View {
-        switch block {
+        switch blockItem.block {
         case let .heading(level, text):
             let headingStyle = headingStyleFor(level)
             MDTextView(

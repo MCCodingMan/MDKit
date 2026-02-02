@@ -28,9 +28,9 @@ struct ContentView: View {
     
     #### H4：标题含 `code` 与 **_混合_**
     
-    ##### H5：标题含 ~~**删除+粗体**~~ 与 *强调*
+    ##### H5：标题含 ~~**删除+粗体**~~ 与 *Emphasis*
     
-    ###### H6：标题含 ***_粗斜体_*** 与 `x = y`
+    ###### H6：标题含 ***_Emphasis_*** 与 `x = y`
     
     ---
     
@@ -208,7 +208,7 @@ struct ContentView: View {
             LazyVStack(alignment: .leading, spacing: 0) {
                 ForEach(items, id: \.id) { item in
                     MDRenderer.makeBlockView(
-                        block: item.block,
+                        item: item,
                     )
                 }
                 .padding(.vertical, 6)
@@ -232,32 +232,33 @@ struct ContentView: View {
         .onMarkdownStyle(for: .paragraph) { style in
             style.lineSpacing = { 6 }
         }
-        .onMarkdownStyle(for: .code) { style in
-            style.view.contentView.highlightCode = { code, language in
-                MDHighlightr.lightr(for: code, language: language)
-            }
-            style.view.contentView.text.lineSpacing = { 6 }
-        }
+//        .onMarkdownStyle(for: .code) { style in
+//            style.view.contentView.highlightCode = { code, language in
+//                MDHighlightr.lightr(for: code, language: language)
+//            }
+//            style.view.contentView.text.lineSpacing = { 6 }
+//        }
         .onMarkdownStyle(for: .image) { style in
             style.layout.height = { 220 }
         }
     }
     
     private func startStreamingMarkdown() async {
-        items = markdown.blockItems()
-//        Task {
-//            var appendIndex: Int = 0
-//            while appendIndex < markdown.count {
-//                try? await Task.sleep(nanoseconds: 800_000_000)
-//                let tempAppendIndex = min(appendIndex + 50, markdown.count)
-//                let streamedMarkdown = String(markdown.prefix(tempAppendIndex))
-//                let decodeItems = streamedMarkdown.blockItems(parser: MDCachedParser())
-//                appendIndex = tempAppendIndex
-//                await MainActor.run {
-//                    items = decodeItems
-//                }
-//            }
-//        }
+//        items = markdown.blockItems()
+        let parseId = UUID().uuidString
+        Task {
+            var appendIndex: Int = 0
+            while appendIndex < markdown.count {
+                try? await Task.sleep(for: .seconds(0.01))
+                let tempAppendIndex = min(appendIndex + 3, markdown.count)
+                let streamedMarkdown = String(markdown.prefix(tempAppendIndex))
+                let decodeItems = streamedMarkdown.blockItems(parser: MDParser(), id: parseId)
+                appendIndex = tempAppendIndex
+                await MainActor.run {
+                    items = decodeItems
+                }
+            }
+        }
     }
 }
 

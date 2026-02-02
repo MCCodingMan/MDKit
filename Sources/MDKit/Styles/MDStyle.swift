@@ -82,22 +82,27 @@ public struct MDStyle {
         ),
         inline: MDInlineTextStyle = MDInlineTextStyle(
             code: MDInlineStyle(
+                weight: { nil },
                 textColor: { .green },
                 backgroundColor: { .clear }
             ),
             emphasis: MDInlineStyle(
+                weight: { nil },
                 textColor: { .black },
                 backgroundColor: { .clear }
             ),
             strong: MDInlineStyle(
+                weight: { .bold },
                 textColor: { .black },
                 backgroundColor: { .clear }
             ),
             strikethrough: MDInlineStyle(
+                weight: { .bold },
                 textColor: { .black },
                 backgroundColor: { .clear }
             ),
             link: MDInlineStyle(
+                weight: { nil },
                 textColor: { Color(red: 0.1, green: 0.45, blue: 0.85) },
                 backgroundColor: { .clear }
             )
@@ -258,7 +263,8 @@ public struct MDStyle {
                 bodyLine: MDTableStyle.LineStyle(
                     lineWidth: { 1 },
                     lineColor: { .gray.opacity(0.1) }
-                )
+                ),
+                cellAlignment: { .leading }
             )
         ),
         divider: MDDividerStyle = MDDividerStyle(

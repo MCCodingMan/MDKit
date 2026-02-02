@@ -88,9 +88,11 @@ extension MDTableStyle {
         public var headerLine: LineStyle
         /// 内容分隔线
         public var bodyLine: LineStyle
+        /// 内容对齐方式
+        public var cellAlignment: () -> Alignment
         
         /// 创建表格视图样式
-        public init(headerBackgroundColor: @escaping () -> Color, bodyBackgroundColor: @escaping () -> Color, cornerRadius: @escaping () -> CGFloat, border: MDBorderStyle, cellPadding: @escaping () -> [Edge : CGFloat?], cellMaxWidth: @escaping () -> CGFloat?, headerLine: LineStyle, bodyLine: LineStyle) {
+        public init(headerBackgroundColor: @escaping () -> Color, bodyBackgroundColor: @escaping () -> Color, cornerRadius: @escaping () -> CGFloat, border: MDBorderStyle, cellPadding: @escaping () -> [Edge : CGFloat?], cellMaxWidth: @escaping () -> CGFloat?, headerLine: LineStyle, bodyLine: LineStyle, cellAlignment: @escaping () -> Alignment) {
             self.headerBackgroundColor = headerBackgroundColor
             self.bodyBackgroundColor = bodyBackgroundColor
             self.cornerRadius = cornerRadius
@@ -99,6 +101,7 @@ extension MDTableStyle {
             self.cellMaxWidth = cellMaxWidth
             self.headerLine = headerLine
             self.bodyLine = bodyLine
+            self.cellAlignment = cellAlignment
         }
     }
 }

@@ -15,11 +15,14 @@ public struct MDTextStyle {
     public var color: () -> Color
     /// 行间距
     public var lineSpacing: (() -> CGFloat)? = nil
+    /// 多行文本对齐方式
+    public var multilineTextAlignment: (() -> TextAlignment)? = nil
 
     /// 创建文本样式
-    public init(font: @escaping () -> Font, color: @escaping () -> Color, lineSpacing: (() -> CGFloat)? = nil) {
+    public init(font: @escaping () -> Font, color: @escaping () -> Color, lineSpacing: (() -> CGFloat)? = nil, multilineTextAlignment: (() -> TextAlignment)? = nil) {
         self.font = font
         self.color = color
         self.lineSpacing = lineSpacing
+        self.multilineTextAlignment = multilineTextAlignment
     }
 }

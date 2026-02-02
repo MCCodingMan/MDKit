@@ -5,13 +5,11 @@ import SwiftUI
 public struct MDRenderer: MDRendering {
     /// 禁止外部实例化，仅提供静态渲染入口
     private init() {}
-
+    
     /// 创建块级视图
     public static func makeBlockView(
-        block: MDBlock
+        item: MDBlockItem
     ) -> MDBlockView {
-        MDBlockView(
-            block: block,
-        )
+        MDBlockView(item: item)
     }
 }

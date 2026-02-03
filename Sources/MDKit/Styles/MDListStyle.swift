@@ -8,51 +8,22 @@
 import SwiftUI
 
 
-/// 列表标记上下文
-public struct MDListMarkerContext {
-    /// 当前序号
-    public let index: Int
-    /// 任务项勾选状态
-    public let checked: Bool?
-    /// 嵌套层级路径
-    public let depthPath: [Int]
-    
-    /// 创建标记上下文
-    public init(index: Int, checked: Bool?, depthPath: [Int]) {
-        self.index = index
-        self.checked = checked
-        self.depthPath = depthPath
-    }
-}
-
-
-/// 列表内容上下文
-public struct MDListContext {
-    /// 列表项集合
-    public let items: [MDListItem]
-    
-    /// 创建列表上下文
-    public init(items: [MDListItem]) {
-        self.items = items
-    }
-}
-
 extension MDListStyle {
     
     /// 列表布局样式
-    public struct ViewStyle {
+    public struct ViewStyle: Sendable{
         /// 列表项间距
-        public var itemSpacing: () -> CGFloat
+        public var itemSpacing: @Sendable () -> CGFloat
         /// 标记与内容间距
-        public var markerSpacing: () -> CGFloat
+        public var markerSpacing: @Sendable () -> CGFloat
         /// 缩进
-        public var indent: () -> CGFloat
+        public var indent: @Sendable () -> CGFloat
         
         /// 创建列表布局样式
         public init(
-            itemSpacing: @escaping () -> CGFloat,
-            markerSpacing: @escaping () -> CGFloat,
-            indent: @escaping () -> CGFloat
+            itemSpacing: @escaping @Sendable () -> CGFloat,
+            markerSpacing: @escaping @Sendable () -> CGFloat,
+            indent: @escaping @Sendable () -> CGFloat
         ) {
             self.itemSpacing = itemSpacing
             self.markerSpacing = markerSpacing
@@ -61,19 +32,19 @@ extension MDListStyle {
     }
     
     /// 列表标记样式
-    public struct MarkerStyle {
+    public struct MarkerStyle: Sendable{
         /// 自定义标记视图
-        public var markerView: ((MDListMarkerContext) -> AnyView)?
+        public var markerView: (@Sendable (MDListMarkerContext) -> AnyView)?
         /// 标记字体
-        public var markerFont: () -> Font
+        public var markerFont: @Sendable () -> Font
         /// 标记颜色
-        public var markerColor: () -> Color
+        public var markerColor: @Sendable () -> Color
         
         /// 创建列表标记样式
         public init(
-            markerView: ((MDListMarkerContext) -> AnyView)? = nil,
-            markerFont: @escaping () -> Font,
-            markerColor: @escaping () -> Color
+            markerView: (@Sendable (MDListMarkerContext) -> AnyView)? = nil,
+            markerFont: @escaping @Sendable () -> Font,
+            markerColor: @escaping @Sendable () -> Color
         ) {
             self.markerView = markerView
             self.markerFont = markerFont

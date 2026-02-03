@@ -1,23 +1,9 @@
 import SwiftUI
 
-/// 脚注内容上下文
-public struct MDFootnoteContext {
-    /// 脚注标识
-    public let label: String
-    /// 脚注内容
-    public let content: String
-
-    /// 创建脚注上下文
-    public init(label: String, content: String) {
-        self.label = label
-        self.content = content
-    }
-}
-
 extension MDFootnoteStyle {
     
     /// 脚注文本样式
-    public struct TextStyle {
+    public struct TextStyle: Sendable {
         /// 标识文本样式
         public var label: MDTextStyle
         /// 内容文本样式
@@ -31,12 +17,12 @@ extension MDFootnoteStyle {
     }
     
     /// 脚注布局样式
-    public struct ViewStyle {
+    public struct ViewStyle: Sendable {
         /// 文本间距
-        public var spacing: () -> CGFloat
+        public var spacing: @Sendable () -> CGFloat
         
         /// 创建脚注布局样式
-        public init(spacing: @escaping () -> CGFloat) {
+        public init(spacing: @escaping @Sendable () -> CGFloat) {
             self.spacing = spacing
         }
     }

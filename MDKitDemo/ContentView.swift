@@ -200,16 +200,22 @@ struct ContentView: View {
     ```
     """##
     
+    let markdown1 = ##"""
+        
+        ## 数学公式（行内 + 块级）
+        
+        行内公式示例：当 \(a \neq 0\) 时，二次方程的解为 \(x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}\)。
+        
+        """##
+    
     @State private var hasStartedStreaming = false
     @State private var items: [MDBlockItem] = []
     
     var body: some View {
         ScrollView(.vertical) {
             LazyVStack(alignment: .leading, spacing: 0) {
-                ForEach(items, id: \.id) { item in
-                    MDRenderer.makeBlockView(
-                        item: item,
-                    )
+                ForEach(items) { item in
+                    MDRenderer.makeBlockView(item: item)
                 }
                 .padding(.vertical, 6)
             }
@@ -225,34 +231,30 @@ struct ContentView: View {
         .task {
             await startStreamingMarkdown()
         }
-        .onMarkdownStyle(for: .header1) { style in
-            style.color = { .blue }
-            style.font = { .system(size: 28, weight: .bold) }
-        }
         .onMarkdownStyle(for: .paragraph) { style in
-            style.lineSpacing = { 6 }
+            style.text.lineSpacing = { 6 }
         }
-//        .onMarkdownStyle(for: .code) { style in
-//            style.view.contentView.highlightCode = { code, language in
-//                MDHighlightr.lightr(for: code, language: language)
-//            }
-//            style.view.contentView.text.lineSpacing = { 6 }
-//        }
+        .onMarkdownStyle(for: .code) { style in
+            style.view.contentView.highlightCode = { code, language in
+                MDHighlightr.lightr(for: code, language: language)
+            }
+            style.view.contentView.text.lineSpacing = { 6 }
+        }
         .onMarkdownStyle(for: .image) { style in
             style.layout.height = { 220 }
         }
     }
     
     private func startStreamingMarkdown() async {
-//        items = markdown.blockItems()
-        let parseId = UUID().uuidString
+        items = markdown.blockItems()
+        
         Task {
             var appendIndex: Int = 0
             while appendIndex < markdown.count {
                 try? await Task.sleep(for: .seconds(0.01))
                 let tempAppendIndex = min(appendIndex + 3, markdown.count)
                 let streamedMarkdown = String(markdown.prefix(tempAppendIndex))
-                let decodeItems = streamedMarkdown.blockItems(parser: MDParser(), id: parseId)
+                let decodeItems = streamedMarkdown.blockItems()
                 appendIndex = tempAppendIndex
                 await MainActor.run {
                     items = decodeItems

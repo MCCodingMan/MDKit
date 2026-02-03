@@ -10,10 +10,13 @@ public struct MDMathStyle: MDContentStyle {
     public var body: bodyBuilder?
     /// 文本样式
     public var text: MDTextStyle
+    
+    public var renderAnimate: @Sendable () -> Animation?
 
     /// 创建数学公式样式
-    public init(body: bodyBuilder? = nil, text: MDTextStyle) {
+    public init(body: bodyBuilder? = nil, text: MDTextStyle, renderAnimate: @escaping @Sendable () -> Animation?) {
         self.body = body
         self.text = text
+        self.renderAnimate = renderAnimate
     }
 }

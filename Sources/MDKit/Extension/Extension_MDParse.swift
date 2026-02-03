@@ -3,33 +3,18 @@ import Foundation
 
 public extension String {
     
-    func blockItems(parser: MDParsing = MDParser(), id: String = UUID().uuidString) -> [MDBlockItem] {
-        let document = parser.parse(markdown: self)
-        var oldItems = ParseManager.items(for: id)
-        let mapped = document.blocks.enumerated().map { idx, block in
-            if let oldItem = oldItems.first(where: { $0.id == "\(idx)" }) {
-                oldItem.updateBlock(block)
-                return oldItem
+    func blockItems(cacheParser: MDCachedParser? = nil) -> [MDBlockItem] {
+        let document = {
+            if let cacheParser {
+               return cacheParser.parse(markdown: self)
             } else {
-                return MDBlockItem(block: block, occurrence: idx)
+                return MDDocument(blocks: MDParser.parseBlocks(markdown: self))
             }
+        }()
+        let mapped = document.blocks.enumerated().map { idx, block in
+            MDBlockItem(block: block, index: idx)
         }
-        ParseManager.save(mapped, for: id)
         return mapped
-    }
-}
-
-class ParseManager {
-    nonisolated(unsafe) static private let shared = ParseManager()
-    
-    private var parsedMap: [String: [MDBlockItem]] = [:]
-    
-    static func save(_ items: [MDBlockItem], for id: String) {
-        shared.parsedMap[id] = items
-    }
-    
-    static func items(for id: String) -> [MDBlockItem] {
-        shared.parsedMap[id] ?? []
     }
 }
 

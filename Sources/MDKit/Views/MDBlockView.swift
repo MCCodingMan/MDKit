@@ -1,328 +1,172 @@
 import SwiftUI
-import UIKit
-import LaTeXSwiftUI
 
-public struct MDBlockView: View {
-//    let block: MDBlock
-    @ObservedObject var blockItem: MDBlockItem
+struct MDBlockView: View {
     @Environment(\.mdStyle) private var style
+    let item: MDBlockItem
     
-//    public init(block: MDBlock) {
-//        self.block = block
-//    }
-    
-    public init(item: MDBlockItem) {
-        self.blockItem = item
-    }
-    
-    public var body: some View {
+    var body: some View {
         blockView
     }
     
-    @ViewBuilder
-    private var blockView: some View {
-        switch blockItem.block {
-        case let .heading(level, text):
-            let headingStyle = headingStyleFor(level)
-            MDTextView(
-                text: text,
-                textStyle: headingStyle,
-                inlineTextStyle: style.inline
+    private var blockView: AnyView {
+        switch item.block {
+        case .heading(let context):
+            if let body = headingStyle(for: context.level).body {
+                return AnyView(body(MDTextDetailContext(text: context.text)))
+            }
+            return AnyView(
+                MDHeadingView(
+                    style: style,
+                    level: context.level,
+                    text: context.text
+                )
             )
-            .frame(maxWidth: .infinity, alignment: .leading)
-        case let .paragraph(text):
-            MDTextView(
-                text: text,
-                textStyle: style.paragraph,
-                inlineTextStyle: style.inline
+        case .paragraph(let context):
+            if let body = style.paragraph.body {
+                return AnyView(body(context))
+            }
+            return AnyView(
+                MDParagraphView(
+                    style: style,
+                    text: context.text
+                )
             )
-            .frame(maxWidth: .infinity, alignment: .leading)
-        case let .quote(lines):
+        case .quote(let context):
             if let body = style.quote.body {
-                body(MDQuoteContext(lines: lines))
-            } else {
-                HStack(alignment: .top, spacing: style.quote.view.lineSpacing()) {
-                    quoteLineView(style.quote.line)
-                    VStack(alignment: .leading, spacing: style.quote.view.lineSpacing()) {
-                        ForEach(lines.indices, id: \.self) { index in
-                            MDTextView(
-                                text: lines[index],
-                                textStyle: style.quote.text,
-                                inlineTextStyle: style.inline
-                            )
-                        }
-                    }
-                    Spacer(minLength: 0)
-                }
-                .mdEdgePadding(style.quote.view.padding())
-                .background(style.quote.view.backgroundColor())
-                .radiusBorder(style: style.quote.view.border)
+                return AnyView(body(context))
             }
-        case let .unorderedList(items):
+            return AnyView(
+                MDQuoteView(
+                    style: style,
+                    lines: context.lines
+                )
+            )
+        case .unorderedList(let context):
             if let body = style.unorderedList.body {
-                body(MDListContext(items: items))
-            } else {
-                VStack(alignment: .leading, spacing: style.unorderedList.view.itemSpacing()) {
-                    ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                        VStack(alignment: .leading, spacing: style.unorderedList.view.itemSpacing()) {
-                            HStack(alignment: .top, spacing: style.unorderedList.view.markerSpacing()) {
-                                listMarkerView(
-                                    style: style.unorderedList.marker,
-                                    context: MDListMarkerContext(
-                                        index: index,
-                                        checked: nil,
-                                        depthPath: item.depthPath
-                                    ),
-                                    defaultText: "•"
-                                )
-                                if item.text.isEmpty == false {
-                                    MDTextView(
-                                        text: item.text,
-                                        textStyle: style.unorderedList.text,
-                                        inlineTextStyle: style.inline
-                                    )
-                                }
-                            }
-                            if item.blocks.isEmpty == false {
-                                VStack(alignment: .leading, spacing: style.unorderedList.view.itemSpacing()) {
-                                    ForEach(item.blocks.indices, id: \.self) { blockIndex in
-                                        MDRenderer.makeBlockView(
-                                            block: item.blocks[blockIndex],
-                                        )
-                                    }
-                                }
-                                .padding(.leading, style.unorderedList.view.indent())
-                            }
-                        }
-                        .padding(.leading, CGFloat(listIndentLevel(item.depthPath)) * style.unorderedList.view.indent())
-                    }
-                }
+                return AnyView(body(context))
             }
-        case let .orderedList(items):
+            return AnyView(
+                MDUnorderlListView(
+                    style: style,
+                    items: context.items
+                )
+            )
+        case .orderedList(let context):
             if let body = style.orderedList.body {
-                body(MDListContext(items: items))
-            } else {
-                VStack(alignment: .leading, spacing: style.orderedList.view.itemSpacing()) {
-                    ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                        let number = item.depthPath.last ?? (index + 1)
-                        VStack(alignment: .leading, spacing: style.orderedList.view.itemSpacing()) {
-                            HStack(alignment: .top, spacing: style.orderedList.view.markerSpacing()) {
-                                listMarkerView(
-                                    style: style.orderedList.marker,
-                                    context: MDListMarkerContext(
-                                        index: index,
-                                        checked: nil,
-                                        depthPath: item.depthPath
-                                    ),
-                                    defaultText: "\(number)."
-                                )
-                                if item.text.isEmpty == false {
-                                    MDTextView(
-                                        text: item.text,
-                                        textStyle: style.orderedList.text,
-                                        inlineTextStyle: style.inline
-                                    )
-                                }
-                            }
-                            if item.blocks.isEmpty == false {
-                                VStack(alignment: .leading, spacing: style.orderedList.view.itemSpacing()) {
-                                    ForEach(item.blocks.indices, id: \.self) { blockIndex in
-                                        MDRenderer.makeBlockView(
-                                            block: item.blocks[blockIndex],
-                                        )
-                                    }
-                                }
-                                .padding(.leading, style.orderedList.view.indent())
-                            }
-                        }
-                        .padding(.leading, CGFloat(listIndentLevel(item.depthPath)) * style.orderedList.view.indent())
-                    }
-                }
+                return AnyView(body(context))
             }
-        case let .taskList(items):
+            return AnyView(
+                MDOrderListView(
+                    style: style,
+                    items: context.items
+                )
+            )
+        case .taskList(let context):
             if let body = style.taskList.body {
-                body(MDTaskListContext(items: items))
-            } else {
-                VStack(alignment: .leading, spacing: style.taskList.view.itemSpacing()) {
-                    ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                        VStack(alignment: .leading, spacing: style.taskList.view.itemSpacing()) {
-                            HStack(alignment: .top, spacing: style.taskList.view.markerSpacing()) {
-                                taskMarkerView(
-                                    style: style.taskList.marker,
-                                    context: MDListMarkerContext(
-                                        index: index,
-                                        checked: item.checked,
-                                        depthPath: item.depthPath
-                                    ),
-                                    checked: item.checked
-                                )
-                                if item.text.isEmpty == false {
-                                    MDTextView(
-                                        text: item.text,
-                                        textStyle: style.taskList.text,
-                                        inlineTextStyle: style.inline
-                                    )
-                                }
-                            }
-                            if item.blocks.isEmpty == false {
-                                VStack(alignment: .leading, spacing: style.taskList.view.itemSpacing()) {
-                                    ForEach(item.blocks.indices, id: \.self) { blockIndex in
-                                        MDRenderer.makeBlockView(
-                                            block: item.blocks[blockIndex],
-                                        )
-                                    }
-                                }
-                                .padding(.leading, style.taskList.view.indent())
-                            }
-                        }
-                        .padding(.leading, CGFloat(listIndentLevel(item.depthPath)) * style.taskList.view.indent())
-                    }
-                }
+                return AnyView(body(context))
             }
-        case let .code(language, code):
+            return AnyView(
+                MDTaskListView(
+                    style: style,
+                    items: context.items
+                )
+            )
+        case .code(let context):
             if let body = style.code.body {
-                body(MDCodeBlockContext(code: code, language: language))
-            } else {
-                VStack(alignment: .leading, spacing: 0) {
-                    if let language, language.isEmpty == false {
-                        if let languageView = style.code.view.languageView.view {
-                            languageView(language)
-                        } else {
-                            HStack(spacing: 0) {
-                                Text(language)
-                                    .font(style.code.view.languageView.text.font())
-                                    .foregroundColor(style.code.view.languageView.text.color())
-                                    .mdEdgePadding(style.code.view.languageView.padding())
-                                Spacer()
-                            }
-                            .background(style.code.view.languageView.background())
-                        }
-                    }
-                    if let contentView = style.code.view.contentView.view {
-                        contentView(code, language)
-                    } else {
-                        MDCodeBlockView(code: code, language: language, style: style.code)
-                    }
-                }
-                .background(style.code.container.backgroundColor())
-                .radiusBorder(style: style.code.container.border)
+                return AnyView(body(context))
             }
-        case let .link(title, url):
-            Link(title, destination: URL(string: url) ?? URL(string: "about:blank")!)
-                .font(style.link.font())
-                .foregroundColor(style.link.color())
-        case let .image(alt, url, title):
+            return AnyView(
+                MDCodeView(
+                    style: style,
+                    language: context.language,
+                    code: context.code
+                )
+            )
+        case .link(let context):
+            if let body = style.link.body {
+                return AnyView(body(context))
+            }
+            return AnyView(MDLinkView(style: style, url: context.url, title: context.title))
+        case .image(let context):
             if let body = style.image.body {
-                body(MDImageContext(alt: alt, url: url, title: title))
-            } else {
-                VStack(spacing: style.image.layout.titleSpacing()) {
-                    MDCachedAsyncImage(url: URL(string: url)) { phase in
-                        switch phase {
-                        case .empty:
-                            if let loadingView = style.image.view.loadingView {
-                                loadingView()
-                            } else {
-                                Color.gray.opacity(0.1)
-                                    .overlay {
-                                        ProgressView()
-                                    }
-                            }
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFit()
-                        case .failure:
-                            if let failureView = style.image.view.failureView {
-                                failureView()
-                            } else {
-                                Color.gray.opacity(0.1)
-                            }
-                        @unknown default:
-                            if let failureView = style.image.view.failureView {
-                                failureView()
-                            } else {
-                                Color.gray.opacity(0.1)
-                            }
-                        }
-                    }
-                    .cornerRadius(style.image.layout.cornerRadius())
-                    .frame(height: style.image.layout.height())
-                    .frame(maxWidth: .infinity)
-                    if let title, title.isEmpty == false {
-                        Text(title)
-                            .font(style.image.text.font())
-                            .foregroundColor(style.image.text.color())
-                            .frame(maxWidth: .infinity, alignment: style.image.layout.titleAlignment())
-                    }
-                }
+                return AnyView(body(context))
             }
-        case let .table(headers, rows):
+            return AnyView(
+                MDImageView(
+                    style: style,
+                    url: context.url,
+                    title: context.title
+                )
+            )
+        case .table(let context):
             if let body = style.table.body {
-                body(MDTableContext(headers: headers, rows: rows))
-            } else {
+                return AnyView(body(context))
+            }
+            return AnyView(
                 MDTableView(
-                    headers: headers.map { MDTableView.CellData(text: $0) },
-                    rows: rows.map { $0.map({ MDTableView.CellData(text: $0) }) },
+                    headers: context.headers.map {
+                        MDTableView.CellData(text: $0)
+                    },
+                    rows: context.rows.map {
+                        $0.map({
+                            MDTableView.CellData(text: $0)
+                        })
+                    },
                     style: style.table
                 )
-            }
+            )
         case .divider:
             if let body = style.divider.body {
-                body(())
-            } else {
-                Rectangle()
-                    .fill(style.divider.line.color())
-                    .frame(height: style.divider.line.height())
-                    .mdEdgePadding(style.divider.line.padding())
+                return AnyView(body(()))
             }
-        case let .html(content):
-            MDHTMLView(text: content)
+            return AnyView(MDDividerView(style: style))
+        case .html(let context):
+            if let body = style.html.body {
+                return AnyView(body(context))
+            }
+            return AnyView(
+                MDHTMLView(
+                    text: context.text
+                )
                 .frame(maxWidth: .infinity, alignment: .leading)
-        case let .footnote(label, content):
+            )
+        case .footnote(let context):
             if let body = style.footnote.body {
-                body(MDFootnoteContext(label: label, content: content))
-            } else {
-                HStack(alignment: .top, spacing: style.footnote.viewStyle.spacing()) {
-                    Text("[\(label)]")
-                        .font(style.footnote.textStyle.label.font())
-                        .foregroundColor(style.footnote.textStyle.label.color())
-                    MDTextView(
-                        text: content,
-                        textStyle: style.footnote.textStyle.content,
-                        inlineTextStyle: style.inline
-                    )
-                }
+                return AnyView(body(context))
             }
-        case let .mathInline(content):
+            return AnyView(
+                MDFootnoteView(
+                    style: style,
+                    label: context.label,
+                    content: context.content
+                )
+            )
+        case .mathInline(let context):
             if let body = style.mathInline.body {
-                body(decodeMath(content))
-            } else {
-                LaTeX(decodeMath(content))
-                    .font(style.mathInline.text.font())
-                    .renderingStyle(.original)
-                    .renderingAnimation(.easeInOut)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                return AnyView(body(decodeMath(context.text)))
             }
-        case let .mathBlock(content):
+            return AnyView(
+                MDMathView(
+                    style: style,
+                    isInline: true,
+                    content: decodeMath(context.text)
+                )
+            )
+        case .mathBlock(let context):
             if let body = style.mathBlock.body {
-                body(decodeMath(content))
-            } else {
-                LaTeX(decodeMath(content))
-                    .font(style.mathBlock.text.font())
-                    .renderingStyle(.original)
-                    .renderingAnimation(.easeInOut)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                return AnyView(body(decodeMath(context.text)))
             }
-        case let .mermaid(content):
-            if let body = style.mermaid.body {
-                body(content)
-            } else {
-                EmptyView()
-            }
+            return AnyView(
+                MDMathView(
+                    style: style,
+                    isInline: false,
+                    content: decodeMath(context.text)
+                )
+            )
         }
     }
     
-    private func headingStyleFor(_ level: Int) -> MDTextStyle {
+    func headingStyle(for level: Int) -> MDTextDetailStyle {
         switch level {
         case 1: return style.header1
         case 2: return style.header2
@@ -355,100 +199,5 @@ public struct MDBlockView: View {
             }
         }
         return text
-    }
-
-    private func listIndentLevel(_ depthPath: [Int]) -> Int {
-        max(0, depthPath.count - 1)
-    }
-    
-    @ViewBuilder
-    private func quoteLineView(_ style: MDQuoteStyle.LineStyle) -> some View {
-        if let lineView = style.lineView {
-            lineView()
-        } else {
-            Rectangle()
-                .fill(style.color())
-                .frame(width: style.width())
-        }
-    }
-    
-    @ViewBuilder
-    private func listMarkerView(
-        style: MDListStyle.MarkerStyle,
-        context: MDListMarkerContext,
-        defaultText: String
-    ) -> some View {
-        if let markerView = style.markerView {
-            markerView(context)
-        } else {
-            Text(defaultText)
-                .font(style.markerFont())
-                .foregroundColor(style.markerColor())
-        }
-    }
-    
-    @ViewBuilder
-    private func taskMarkerView(
-        style: MDTaskListStyle.MarkerStyle,
-        context: MDListMarkerContext,
-        checked: Bool
-    ) -> some View {
-        if let markerView = style.markerView {
-            markerView(context)
-        } else {
-            Image(systemName: checked ? "checkmark.square.fill" : "square")
-                .foregroundColor(checked ? style.checkedColor() : style.uncheckedColor())
-        }
-    }
-    
-    private func defaultCopyText(for block: MDBlock) -> String? {
-        switch block {
-        case let .heading(_, text):
-            return text
-        case let .paragraph(text):
-            return text
-        case let .quote(lines):
-            return lines.joined(separator: "\n")
-        case let .unorderedList(items):
-            return items.map { listItemCopyText(text: $0.text, blocks: $0.blocks) }.joined(separator: "\n")
-        case let .orderedList(items):
-            return items.map { listItemCopyText(text: $0.text, blocks: $0.blocks) }.joined(separator: "\n")
-        case let .taskList(items):
-            return items.map { "\($0.checked ? "[x]" : "[ ]") \(listItemCopyText(text: $0.text, blocks: $0.blocks))" }.joined(separator: "\n")
-        case let .code(_, code):
-            return code
-        case let .link(title, url):
-            return "\(title) \(url)"
-        case let .image(alt, url, _):
-            return "\(alt) \(url)"
-        case let .table(headers, rows):
-            let headerLine = headers.joined(separator: " | ")
-            let rowLines = rows.map { $0.joined(separator: " | ") }
-            return ([headerLine] + rowLines).joined(separator: "\n")
-        case .divider:
-            return nil
-        case let .html(content):
-            return content
-        case let .footnote(label, content):
-            return "[\(label)] \(content)"
-        case let .mathInline(content):
-            return content
-        case let .mathBlock(content):
-            return content
-        case let .mermaid(content):
-            return content
-        }
-    }
-    
-    private func listItemCopyText(text: String, blocks: [MDBlock]) -> String {
-        var parts: [String] = []
-        if text.isEmpty == false {
-            parts.append(text)
-        }
-        let nested = blocks.compactMap { defaultCopyText(for: $0) }
-        if nested.isEmpty == false {
-            parts.append(contentsOf: nested)
-        }
-        return parts.joined(separator: "\n")
     }
 }

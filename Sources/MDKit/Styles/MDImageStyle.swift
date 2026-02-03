@@ -1,35 +1,18 @@
 import SwiftUI
 
-/// 图片内容上下文
-public struct MDImageContext {
-    /// 替代文本
-    public let alt: String
-    /// 图片地址
-    public let url: String
-    /// 标题
-    public let title: String?
-
-    /// 创建图片上下文
-    public init(alt: String, url: String, title: String?) {
-        self.alt = alt
-        self.url = url
-        self.title = title
-    }
-}
-
 extension MDImageStyle {
     
     /// 图片视图样式
-    public struct ViewStyle {
+    public struct ViewStyle : Sendable{
         /// 加载视图
-        public var loadingView: (() -> AnyView)?
+        public var loadingView: (@Sendable () -> AnyView)?
         /// 失败视图
-        public var failureView: (() -> AnyView)?
+        public var failureView: (@Sendable () -> AnyView)?
         
         /// 创建图片视图样式
         public init(
-            loadingView: (() -> AnyView)? = nil,
-            failureView: (() -> AnyView)? = nil
+            loadingView: (@Sendable () -> AnyView)? = nil,
+            failureView: (@Sendable () -> AnyView)? = nil
         ) {
             self.loadingView = loadingView
             self.failureView = failureView
@@ -37,18 +20,18 @@ extension MDImageStyle {
     }
     
     /// 图片布局样式
-    public struct LayoutStyle {
+    public struct LayoutStyle : Sendable{
         /// 圆角
-        public var cornerRadius: () -> CGFloat
+        public var cornerRadius: @Sendable () -> CGFloat
         /// 标题间距
-        public var titleSpacing: () -> CGFloat
+        public var titleSpacing: @Sendable () -> CGFloat
         /// 标题对齐
-        public var titleAlignment: () -> Alignment
+        public var titleAlignment: @Sendable () -> Alignment
         /// 占位高度
-        public var height: () -> CGFloat?
+        public var height: @Sendable () -> CGFloat?
         
         /// 创建图片布局样式
-        public init(cornerRadius: @escaping () -> CGFloat, titleSpacing: @escaping () -> CGFloat, titleAlignment: @escaping () -> Alignment, height: @escaping () -> CGFloat?) {
+        public init(cornerRadius: @escaping @Sendable () -> CGFloat, titleSpacing: @escaping @Sendable () -> CGFloat, titleAlignment: @escaping @Sendable () -> Alignment, height: @escaping @Sendable () -> CGFloat?) {
             self.cornerRadius = cornerRadius
             self.titleSpacing = titleSpacing
             self.titleAlignment = titleAlignment

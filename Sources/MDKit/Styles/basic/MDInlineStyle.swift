@@ -8,19 +8,19 @@
 import SwiftUI
 
 /// 行内样式配置
-public struct MDInlineStyle {
+public struct MDInlineStyle: Sendable {
     /// 文本字重
-    public var weight: () -> Font.Weight?
+    public var weight: @Sendable () -> Font.Weight?
     /// 文本颜色
-    public var textColor: () -> Color
+    public var textColor: @Sendable () -> Color
     /// 背景颜色
-    public var backgroundColor: () -> Color
+    public var backgroundColor: @Sendable () -> Color
 
     /// 创建行内样式
     public init(
-        weight: @escaping () -> Font.Weight?,
-        textColor: @escaping () -> Color,
-        backgroundColor: @escaping () -> Color
+        weight: @escaping @Sendable () -> Font.Weight?,
+        textColor: @escaping @Sendable () -> Color,
+        backgroundColor: @escaping @Sendable () -> Color
     ) {
         self.weight = weight
         self.textColor = textColor

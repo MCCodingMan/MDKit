@@ -6,7 +6,7 @@
 //
 
 /// 行内文本样式集合
-public struct MDInlineTextStyle {
+public struct MDInlineTextStyle: Sendable {
     /// 行内代码样式
     public var code: MDInlineStyle
     /// 强调样式

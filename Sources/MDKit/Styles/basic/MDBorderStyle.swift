@@ -8,16 +8,18 @@
 import SwiftUI
 
 /// 边框样式配置
-public struct MDBorderStyle {
+public struct MDBorderStyle: Sendable {
     /// 边框颜色
-    public var color: () -> Color
+    public var color: @Sendable () -> Color
     /// 边框宽度
-    public var width: () -> CGFloat
+    public var width: @Sendable () -> CGFloat
     /// 边框圆角半径
-    public var cornerRadius: () -> CGFloat
+    public var cornerRadius: @Sendable () -> CGFloat
 
     /// 创建边框样式
-    public init(color: @escaping () -> Color, width: @escaping () -> CGFloat, cornerRadius: @escaping () -> CGFloat) {
+    public init(color: @escaping @Sendable () -> Color,
+                width: @escaping @Sendable () -> CGFloat,
+                cornerRadius: @escaping @Sendable () -> CGFloat) {
         self.color = color
         self.width = width
         self.cornerRadius = cornerRadius

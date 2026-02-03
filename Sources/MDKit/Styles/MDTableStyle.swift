@@ -1,19 +1,5 @@
 import SwiftUI
 
-/// 表格内容上下文
-public struct MDTableContext {
-    /// 表头
-    public let headers: [String]
-    /// 行数据
-    public let rows: [[String]]
-
-    /// 创建表格上下文
-    public init(headers: [String], rows: [[String]]) {
-        self.headers = headers
-        self.rows = rows
-    }
-}
-
 /// 表格样式配置
 public struct MDTableStyle: MDContentStyle {
     /// 输入上下文类型
@@ -42,7 +28,7 @@ public struct MDTableStyle: MDContentStyle {
 extension MDTableStyle {
     
     /// 表格文本样式
-    public struct TextStyle {
+    public struct TextStyle : Sendable{
         /// 表头文本样式
         public var headerText: MDTextStyle
         /// 内容文本样式
@@ -56,14 +42,14 @@ extension MDTableStyle {
     }
     
     /// 表格线条样式
-    public struct LineStyle {
+    public struct LineStyle: Sendable {
         /// 线宽
-        public var lineWidth: () -> CGFloat
+        public var lineWidth: @Sendable () -> CGFloat
         /// 线色
-        public var lineColor: () -> Color
+        public var lineColor: @Sendable () -> Color
         
         /// 创建线条样式
-        public init(lineWidth: @escaping () -> CGFloat, lineColor: @escaping () -> Color) {
+        public init(lineWidth: @escaping @Sendable () -> CGFloat, lineColor: @escaping @Sendable () -> Color) {
             self.lineWidth = lineWidth
             self.lineColor = lineColor
         }
@@ -71,28 +57,28 @@ extension MDTableStyle {
     
     
     /// 表格视图样式
-    public struct ViewStyle {
+    public struct ViewStyle : Sendable{
         /// 表头背景色
-        public var headerBackgroundColor: () -> Color
+        public var headerBackgroundColor: @Sendable () -> Color
         /// 内容背景色
-        public var bodyBackgroundColor: () -> Color
+        public var bodyBackgroundColor: @Sendable () -> Color
         /// 圆角
-        public var cornerRadius: () -> CGFloat
+        public var cornerRadius: @Sendable () -> CGFloat
         /// 边框样式
         public var border: MDBorderStyle
         /// 单元格内边距
-        public var cellPadding: () -> [Edge: CGFloat?]
+        public var cellPadding: @Sendable () -> [Edge: CGFloat?]
         /// 单元格最大宽度
-        public var cellMaxWidth: () -> CGFloat?
+        public var cellMaxWidth: @Sendable () -> CGFloat?
         /// 表头分隔线
         public var headerLine: LineStyle
         /// 内容分隔线
         public var bodyLine: LineStyle
         /// 内容对齐方式
-        public var cellAlignment: () -> Alignment
+        public var cellAlignment: @Sendable () -> Alignment
         
         /// 创建表格视图样式
-        public init(headerBackgroundColor: @escaping () -> Color, bodyBackgroundColor: @escaping () -> Color, cornerRadius: @escaping () -> CGFloat, border: MDBorderStyle, cellPadding: @escaping () -> [Edge : CGFloat?], cellMaxWidth: @escaping () -> CGFloat?, headerLine: LineStyle, bodyLine: LineStyle, cellAlignment: @escaping () -> Alignment) {
+        public init(headerBackgroundColor: @escaping @Sendable () -> Color, bodyBackgroundColor: @escaping @Sendable () -> Color, cornerRadius: @escaping @Sendable () -> CGFloat, border: MDBorderStyle, cellPadding: @escaping @Sendable () -> [Edge : CGFloat?], cellMaxWidth: @escaping @Sendable () -> CGFloat?, headerLine: LineStyle, bodyLine: LineStyle, cellAlignment: @escaping @Sendable () -> Alignment) {
             self.headerBackgroundColor = headerBackgroundColor
             self.bodyBackgroundColor = bodyBackgroundColor
             self.cornerRadius = cornerRadius

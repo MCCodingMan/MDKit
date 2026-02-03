@@ -1,33 +1,22 @@
 import SwiftUI
 
-/// 任务列表上下文
-public struct MDTaskListContext {
-    /// 任务项集合
-    public let items: [MDTaskItem]
-
-    /// 创建任务列表上下文
-    public init(items: [MDTaskItem]) {
-        self.items = items
-    }
-}
-
 /// 任务列表样式配置
 public struct MDTaskListStyle: MDContentStyle {
     
     /// 任务标记样式
-    public struct MarkerStyle {
+    public struct MarkerStyle: Sendable{
         /// 自定义标记视图
-        public var markerView: ((MDListMarkerContext) -> AnyView)?
+        public var markerView: (@Sendable (MDListMarkerContext) -> AnyView)?
         /// 勾选颜色
-        public var checkedColor: () -> Color
+        public var checkedColor: @Sendable () -> Color
         /// 未勾选颜色
-        public var uncheckedColor: () -> Color
+        public var uncheckedColor: @Sendable () -> Color
         
         /// 创建任务标记样式
         public init(
-            markerView: ((MDListMarkerContext) -> AnyView)? = nil,
-            checkedColor: @escaping () -> Color,
-            uncheckedColor: @escaping () -> Color
+            markerView: (@Sendable (MDListMarkerContext) -> AnyView)? = nil,
+            checkedColor: @escaping @Sendable () -> Color,
+            uncheckedColor: @escaping @Sendable () -> Color
         ) {
             self.markerView = markerView
             self.checkedColor = checkedColor
@@ -36,19 +25,19 @@ public struct MDTaskListStyle: MDContentStyle {
     }
     
     /// 任务列表布局样式
-    public struct ViewStyle {
+    public struct ViewStyle : Sendable{
         /// 列表项间距
-        public var itemSpacing: () -> CGFloat
+        public var itemSpacing: @Sendable () -> CGFloat
         /// 标记与内容间距
-        public var markerSpacing: () -> CGFloat
+        public var markerSpacing: @Sendable () -> CGFloat
         /// 缩进
-        public var indent: () -> CGFloat
+        public var indent: @Sendable () -> CGFloat
         
         /// 创建任务列表布局样式
         public init(
-            itemSpacing: @escaping () -> CGFloat,
-            markerSpacing: @escaping () -> CGFloat,
-            indent: @escaping () -> CGFloat
+            itemSpacing: @escaping @Sendable () -> CGFloat,
+            markerSpacing: @escaping @Sendable () -> CGFloat,
+            indent: @escaping @Sendable () -> CGFloat
         ) {
             self.itemSpacing = itemSpacing
             self.markerSpacing = markerSpacing

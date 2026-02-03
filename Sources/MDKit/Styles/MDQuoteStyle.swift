@@ -7,36 +7,24 @@
 
 import SwiftUI
 
-
-/// 引用块内容上下文
-public struct MDQuoteContext {
-    /// 引用文本行
-    public let lines: [String]
-    
-    /// 创建引用上下文
-    public init(lines: [String]) {
-        self.lines = lines
-    }
-}
-
 /// 引用块样式配置
 public struct MDQuoteStyle: MDContentStyle {
     
     /// 引用块视图样式
-    public struct ViewStyle {
+    public struct ViewStyle : Sendable{
         /// 行间距
-        public var lineSpacing: () -> CGFloat
+        public var lineSpacing: @Sendable () -> CGFloat
         /// 内边距
-        public var padding: () -> [Edge: CGFloat?]
+        public var padding: @Sendable () -> [Edge: CGFloat?]
         /// 背景色
-        public var backgroundColor: () -> Color
+        public var backgroundColor: @Sendable () -> Color
         /// 圆角
-        public var cornerRadius: () -> CGFloat
+        public var cornerRadius: @Sendable () -> CGFloat
         /// 边框样式
         public var border: MDBorderStyle
         
         /// 创建引用块视图样式
-        public init(lineSpacing: @escaping () -> CGFloat, padding: @escaping () -> [Edge: CGFloat?], backgroundColor: @escaping () -> Color, cornerRadius: @escaping () -> CGFloat, border: MDBorderStyle) {
+        public init(lineSpacing: @escaping @Sendable () -> CGFloat, padding: @escaping @Sendable () -> [Edge: CGFloat?], backgroundColor: @escaping @Sendable () -> Color, cornerRadius: @escaping @Sendable () -> CGFloat, border: MDBorderStyle) {
             self.lineSpacing = lineSpacing
             self.padding = padding
             self.backgroundColor = backgroundColor
@@ -46,19 +34,19 @@ public struct MDQuoteStyle: MDContentStyle {
     }
     
     /// 引用竖线样式
-    public struct LineStyle {
+    public struct LineStyle : Sendable{
         /// 竖线颜色
-        public var color: () -> Color
+        public var color: @Sendable () -> Color
         /// 竖线宽度
-        public var width: () -> CGFloat
+        public var width: @Sendable () -> CGFloat
         /// 自定义竖线视图
-        public var lineView: (() -> AnyView)?
+        public var lineView: (@Sendable () -> AnyView)?
         
         /// 创建竖线样式
         public init(
-            color: @escaping () -> Color,
-            width: @escaping () -> CGFloat,
-            lineView: (() -> AnyView)? = nil
+            color: @escaping @Sendable () -> Color,
+            width: @escaping @Sendable () -> CGFloat,
+            lineView: (@Sendable () -> AnyView)? = nil
         ) {
             self.color = color
             self.width = width

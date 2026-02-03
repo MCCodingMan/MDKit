@@ -3,16 +3,16 @@ import SwiftUI
 extension MDDividerStyle {
     
     /// 分割线样式
-    public struct LineStyle {
+    public struct LineStyle: Sendable {
         /// 线条颜色
-        public var color: () -> Color
+        public var color: @Sendable () -> Color
         /// 线条高度
-        public var height: () -> CGFloat
+        public var height: @Sendable () -> CGFloat
         /// 外边距
-        public var padding: () -> [Edge: CGFloat?]
+        public var padding: @Sendable () -> [Edge: CGFloat?]
         
         /// 创建分割线样式
-        public init(color: @escaping () -> Color, height: @escaping () -> CGFloat, padding: @escaping () -> [Edge: CGFloat?]) {
+        public init(color: @escaping @Sendable () -> Color, height: @escaping @Sendable () -> CGFloat, padding: @escaping @Sendable () -> [Edge: CGFloat?]) {
             self.color = color
             self.height = height
             self.padding = padding

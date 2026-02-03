@@ -9,16 +9,16 @@
 import SwiftUI  
 import UIKit
 
-public struct MDHTMLView: View {
+struct MDHTMLView: View {
     let text: String
     private let attributed: NSAttributedString?
     
-    public init(text: String) {
+    init(text: String) {
         self.text = text
         self.attributed = MDHTMLView.makeNSAttributedString(text)
     }
     
-    public var body: some View {  
+    var body: some View {  
         HTMLTextView(attributed: attributed)
     }
     

@@ -1,23 +1,23 @@
 import SwiftUI
 
 /// Markdown 全局样式配置
-public struct MDStyle {
+public struct MDStyle: Sendable {
     /// 一级标题样式
-    public var header1: MDTextStyle
+    public var header1: MDTextDetailStyle
     /// 二级标题样式
-    public var header2: MDTextStyle
+    public var header2: MDTextDetailStyle
     /// 三级标题样式
-    public var header3: MDTextStyle
+    public var header3: MDTextDetailStyle
     /// 四级标题样式
-    public var header4: MDTextStyle
+    public var header4: MDTextDetailStyle
     /// 五级标题样式
-    public var header5: MDTextStyle
+    public var header5: MDTextDetailStyle
     /// 六级标题样式
-    public var header6: MDTextStyle
+    public var header6: MDTextDetailStyle
     /// 正文样式
-    public var paragraph: MDTextStyle
+    public var paragraph: MDTextDetailStyle
     /// 链接样式
-    public var link: MDTextStyle
+    public var link: MDLinkStyle
     /// 行内文本样式
     public var inline: MDInlineTextStyle
     /// 引用样式
@@ -42,43 +42,66 @@ public struct MDStyle {
     public var mathInline: MDMathStyle
     /// 块级数学公式样式
     public var mathBlock: MDMathStyle
-    /// Mermaid 图样式
-    public var mermaid: MDMermaidStyle
-
+    /// HTML 内容样式
+    public var html: MDHtmlStyle
     /// 创建全局样式
     public init(
-        header1: MDTextStyle = MDTextStyle(
-            font: { .system(size: 18, weight: .bold) },
-            color: { .black }
+        header1: MDTextDetailStyle = MDTextDetailStyle(
+            body: nil,
+            text: MDTextStyle(
+                font: { .system(size: 18, weight: .bold) },
+                color: { .black }
+            )
         ),
-        header2: MDTextStyle = MDTextStyle(
-            font: { .system(size: 18, weight: .bold) },
-            color: { .black }
+        header2: MDTextDetailStyle = MDTextDetailStyle(
+            body: nil,
+            text: MDTextStyle(
+                font: { .system(size: 18, weight: .bold) },
+                color: { .black }
+            )
         ),
-        header3: MDTextStyle = MDTextStyle(
-            font: { .system(size: 16, weight: .semibold) },
-            color: { .black }
+        header3: MDTextDetailStyle = MDTextDetailStyle(
+            body: nil,
+            text: MDTextStyle(
+                font: { .system(size: 16, weight: .semibold) },
+                color: { .black }
+            )
         ),
-        header4: MDTextStyle = MDTextStyle(
-            font: { .system(size: 16, weight: .semibold) },
-            color: { .black }
+        header4: MDTextDetailStyle = MDTextDetailStyle(
+            body: nil,
+            text: MDTextStyle(
+                font: { .system(size: 16, weight: .semibold) },
+                color: { .black }
+            )
         ),
-        header5: MDTextStyle = MDTextStyle(
-            font: { .system(size: 16, weight: .medium) },
-            color: { .black }
+        header5: MDTextDetailStyle = MDTextDetailStyle(
+            body: nil,
+            text: MDTextStyle(
+                font: { .system(size: 16, weight: .medium) },
+                color: { .black }
+            )
         ),
-        header6: MDTextStyle = MDTextStyle(
-            font: { .system(size: 16, weight: .medium) },
-            color: { .black }
+        header6: MDTextDetailStyle = MDTextDetailStyle(
+            body: nil,
+            text: MDTextStyle(
+                font: { .system(size: 16, weight: .medium) },
+                color: { .black }
+            )
         ),
-        paragraph: MDTextStyle = MDTextStyle(
-            font: { .system(size: 16) },
-            color: { .black },
-            lineSpacing: { 6 }
+        paragraph: MDTextDetailStyle = MDTextDetailStyle(
+            body: nil,
+            text: MDTextStyle(
+                font: { .system(size: 16) },
+                color: { .black },
+                lineSpacing: { 6 }
+            )
         ),
-        link: MDTextStyle = MDTextStyle(
-            font: { .system(size: 16) },
-            color: { Color(red: 0.1, green: 0.45, blue: 0.85) }
+        link: MDLinkStyle = MDLinkStyle(
+            body: nil,
+            text: MDTextStyle(
+                font: { .system(size: 16) },
+                color: { Color(red: 0.1, green: 0.45, blue: 0.85) }
+            )
         ),
         inline: MDInlineTextStyle = MDInlineTextStyle(
             code: MDInlineStyle(
@@ -295,33 +318,20 @@ public struct MDStyle {
             body: nil,
             text: MDTextStyle(
                 font: { .system(size: 16) },
-                color: { .red }
-            )
+                color: { .red },
+            ),
+            renderAnimate: { .default }
         ),
         mathBlock: MDMathStyle = MDMathStyle(
             body: nil,
             text: MDTextStyle(
                 font: { .system(size: 16) },
                 color: { .red }
-            )
-        ),
-        mermaid: MDMermaidStyle = MDMermaidStyle(
-            body: nil,
-            text: MDMermaidStyle.TextStyle(
-                label: MDTextStyle(
-                    font: { .system(size: 16) },
-                    color: { .secondary }
-                ),
-                content: MDTextStyle(
-                    font: { .system(size: 16) },
-                    color: { .black }
-                )
             ),
-            view: MDMermaidStyle.ViewStyle(
-                backgroundColor: { .black.opacity(0.5) },
-                cornerRadius: { 6 },
-                padding: { [:] }
-            )
+            renderAnimate: { .default }
+        ),
+        html: MDHtmlStyle = MDHtmlStyle(
+            body: nil
         )
     ) {
         self.header1 = header1
@@ -344,11 +354,11 @@ public struct MDStyle {
         self.footnote = footnote
         self.mathInline = mathInline
         self.mathBlock = mathBlock
-        self.mermaid = mermaid
+        self.html = html
     }
 
     /// 默认样式
-    nonisolated(unsafe) public static let defaultStyle = MDStyle()
+    public static let defaultStyle = MDStyle()
 }
 
 /// 样式目标类型
@@ -363,15 +373,18 @@ public struct MDStyleTarget<Value> {
 }
 
 /// 文字类样式目标
-public extension MDStyleTarget where Value == MDTextStyle {
-    static var header1: MDStyleTarget<MDTextStyle> { MDStyleTarget(\.header1) }
-    static var header2: MDStyleTarget<MDTextStyle> { MDStyleTarget(\.header2) }
-    static var header3: MDStyleTarget<MDTextStyle> { MDStyleTarget(\.header3) }
-    static var header4: MDStyleTarget<MDTextStyle> { MDStyleTarget(\.header4) }
-    static var header5: MDStyleTarget<MDTextStyle> { MDStyleTarget(\.header5) }
-    static var header6: MDStyleTarget<MDTextStyle> { MDStyleTarget(\.header6) }
-    static var paragraph: MDStyleTarget<MDTextStyle> { MDStyleTarget(\.paragraph) }
-    static var link: MDStyleTarget<MDTextStyle> { MDStyleTarget(\.link) }
+public extension MDStyleTarget where Value == MDTextDetailStyle {
+    static var header1: MDStyleTarget<MDTextDetailStyle> { MDStyleTarget(\.header1) }
+    static var header2: MDStyleTarget<MDTextDetailStyle> { MDStyleTarget(\.header2) }
+    static var header3: MDStyleTarget<MDTextDetailStyle> { MDStyleTarget(\.header3) }
+    static var header4: MDStyleTarget<MDTextDetailStyle> { MDStyleTarget(\.header4) }
+    static var header5: MDStyleTarget<MDTextDetailStyle> { MDStyleTarget(\.header5) }
+    static var header6: MDStyleTarget<MDTextDetailStyle> { MDStyleTarget(\.header6) }
+    static var paragraph: MDStyleTarget<MDTextDetailStyle> { MDStyleTarget(\.paragraph) }
+}
+
+public extension MDStyleTarget where Value == MDLinkStyle {
+    static var link: MDStyleTarget<MDLinkStyle> { MDStyleTarget(\.link) }
 }
 
 /// 行内样式目标
@@ -426,14 +439,14 @@ public extension MDStyleTarget where Value == MDMathStyle {
     static var mathBlock: MDStyleTarget<MDMathStyle> { MDStyleTarget(\.mathBlock) }
 }
 
-/// Mermaid 样式目标
-public extension MDStyleTarget where Value == MDMermaidStyle {
-    static var mermaid: MDStyleTarget<MDMermaidStyle> { MDStyleTarget(\.mermaid) }
+/// HTML 内容样式目标
+public extension MDStyleTarget where Value == MDHtmlStyle {
+    static var html: MDStyleTarget<MDHtmlStyle> { MDStyleTarget(\.html) }
 }
 
 /// 样式环境键
 private struct MDStyleEnvironmentKey: EnvironmentKey {
-    nonisolated(unsafe) static let defaultValue = MDStyle.defaultStyle
+    static let defaultValue = MDStyle.defaultStyle
 }
 
 /// 环境变量扩展

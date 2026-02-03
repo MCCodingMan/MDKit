@@ -1,34 +1,20 @@
 import SwiftUI
 
-/// 代码块内容上下文
-public struct MDCodeBlockContext {
-    /// 代码文本
-    public let code: String
-    /// 语言标识
-    public let language: String?
-
-    /// 创建代码块上下文
-    public init(code: String, language: String?) {
-        self.code = code
-        self.language = language
-    }
-}
-
 extension MDCodeStyle {
     
     /// 代码语言标签视图样式
-    public struct LanguageViewStyle {
+    public struct LanguageViewStyle: Sendable {
         /// 自定义语言视图
-        public var view: ((String) -> AnyView)?
+        public var view: (@Sendable (String) -> AnyView)?
         /// 语言文本样式
         public var text: MDTextStyle
         /// 内边距
-        public var padding: () -> [Edge: CGFloat?]
+        public var padding: @Sendable () -> [Edge: CGFloat?]
         /// 背景色
-        public var background: () -> Color
+        public var background: @Sendable () -> Color
         
         /// 创建语言标签样式
-        public init(view: ((String) -> AnyView)? = nil, text: MDTextStyle, padding: @escaping () -> [Edge : CGFloat?], background: @escaping () -> Color) {
+        public init(view: (@Sendable (String) -> AnyView)? = nil, text: MDTextStyle, padding: @escaping @Sendable () -> [Edge : CGFloat?], background: @escaping @Sendable () -> Color) {
             self.view = view
             self.text = text
             self.padding = padding
@@ -38,22 +24,22 @@ extension MDCodeStyle {
     
     
     /// 代码内容视图样式
-    public struct ContentViewStyle {
+    public struct ContentViewStyle: Sendable {
         /// 自定义代码内容视图
-        public var view: ((String, String?) -> AnyView)?
+        public var view: (@Sendable (String, String?) -> AnyView)?
         /// 语法高亮处理
-        public var highlightCode: ((String, String?) -> NSAttributedString)? = nil
+        public var highlightCode: (@Sendable (String, String?) -> NSAttributedString)? = nil
         /// 单行高度
-        public var codeSingleHeight: () -> CGFloat
+        public var codeSingleHeight: @Sendable () -> CGFloat
         /// 内边距
-        public var padding: () -> [Edge: CGFloat?]
+        public var padding: @Sendable () -> [Edge: CGFloat?]
         /// 文本样式
         public var text: MDTextStyle
         /// 背景色
-        public var background: () -> Color
+        public var background: @Sendable () -> Color
         
         /// 创建内容视图样式
-        public init(view: ((String, String?) -> AnyView)? = nil, highlightCode: ((String, String?) -> NSAttributedString)? = nil, codeSingleHeight: @escaping () -> CGFloat, padding: @escaping () -> [Edge : CGFloat?], text: MDTextStyle, background: @escaping () -> Color) {
+        public init(view: (@Sendable (String, String?) -> AnyView)? = nil, highlightCode: (@Sendable (String, String?) -> NSAttributedString)? = nil, codeSingleHeight: @escaping @Sendable () -> CGFloat, padding: @escaping @Sendable () -> [Edge : CGFloat?], text: MDTextStyle, background: @escaping @Sendable () -> Color) {
             self.view = view
             self.highlightCode = highlightCode
             self.codeSingleHeight = codeSingleHeight
@@ -64,7 +50,7 @@ extension MDCodeStyle {
     }
     
     /// 代码块整体视图样式
-    public struct ViewStyle {
+    public struct ViewStyle: Sendable {
         /// 语言标签样式
         public var languageView: LanguageViewStyle
         /// 内容视图样式
@@ -78,18 +64,18 @@ extension MDCodeStyle {
     }
     
     /// 代码块容器样式
-    public struct ContainerStyle {
+    public struct ContainerStyle: Sendable {
         /// 背景色
-        public var backgroundColor: () -> Color
+        public var backgroundColor: @Sendable () -> Color
         /// 圆角
-        public var cornerRadius: () -> CGFloat
+        public var cornerRadius: @Sendable () -> CGFloat
         /// 边框样式
         public var border: MDBorderStyle
         
         /// 创建容器样式
         public init(
-            backgroundColor: @escaping () -> Color,
-            cornerRadius: @escaping () -> CGFloat,
+            backgroundColor: @escaping @Sendable () -> Color,
+            cornerRadius: @escaping @Sendable () -> CGFloat,
             border: MDBorderStyle,
         ) {
             self.backgroundColor = backgroundColor

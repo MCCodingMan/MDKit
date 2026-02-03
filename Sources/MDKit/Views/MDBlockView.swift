@@ -7,102 +7,140 @@ struct MDBlockView: View {
     var body: some View {
         blockView
     }
+
+    @ViewBuilder
+    var blockView: some View {
+        switch item.block {
+        case .heading, .paragraph, .quote, .html, .divider:
+            renderTextBlock
+        case .unorderedList, .orderedList, .taskList:
+            renderListBlock
+        case .code, .link, .image, .table:
+            renderMediaBlock
+        case .footnote, .mathInline, .mathBlock:
+            renderMiscBlock
+        }
+    }
     
-    private var blockView: AnyView {
+    @ViewBuilder
+    var renderTextBlock: some View {
         switch item.block {
         case .heading(let context):
             if let body = headingStyle(for: context.level).body {
-                return AnyView(body(MDTextDetailContext(text: context.text)))
-            }
-            return AnyView(
+                body(MDTextDetailContext(text: context.text))
+            } else {
                 MDHeadingView(
                     style: style,
                     level: context.level,
                     text: context.text
                 )
-            )
+            }
         case .paragraph(let context):
             if let body = style.paragraph.body {
-                return AnyView(body(context))
-            }
-            return AnyView(
+                body(context)
+            } else {
                 MDParagraphView(
                     style: style,
                     text: context.text
                 )
-            )
+            }
         case .quote(let context):
             if let body = style.quote.body {
-                return AnyView(body(context))
-            }
-            return AnyView(
+                body(context)
+            } else {
                 MDQuoteView(
                     style: style,
                     lines: context.lines
                 )
-            )
+            }
+        case .html(let context):
+            if let body = style.html.body {
+                body(context)
+            } else {
+                MDHTMLView(
+                    text: context.text
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        case .divider:
+            if let body = style.divider.body {
+                body(())
+            } else {
+                MDDividerView(style: style)
+            }
+        default:
+            EmptyView()
+        }
+    }
+    
+    @ViewBuilder
+    var renderListBlock: some View {
+        switch item.block {
         case .unorderedList(let context):
             if let body = style.unorderedList.body {
-                return AnyView(body(context))
-            }
-            return AnyView(
+                body(context)
+            } else {
                 MDUnorderlListView(
                     style: style,
                     items: context.items
                 )
-            )
+            }
         case .orderedList(let context):
             if let body = style.orderedList.body {
-                return AnyView(body(context))
-            }
-            return AnyView(
+                body(context)
+            } else {
                 MDOrderListView(
                     style: style,
                     items: context.items
                 )
-            )
+            }
         case .taskList(let context):
             if let body = style.taskList.body {
-                return AnyView(body(context))
-            }
-            return AnyView(
+                body(context)
+            } else {
                 MDTaskListView(
                     style: style,
                     items: context.items
                 )
-            )
+            }
+        default:
+            EmptyView()
+        }
+    }
+    
+    @ViewBuilder
+    var renderMediaBlock: some View {
+        switch item.block {
         case .code(let context):
             if let body = style.code.body {
-                return AnyView(body(context))
-            }
-            return AnyView(
+                body(context)
+            } else {
                 MDCodeView(
                     style: style,
                     language: context.language,
                     code: context.code
                 )
-            )
+            }
         case .link(let context):
             if let body = style.link.body {
-                return AnyView(body(context))
+                body(context)
+            } else {
+                MDLinkView(style: style, url: context.url, title: context.title)
             }
-            return AnyView(MDLinkView(style: style, url: context.url, title: context.title))
         case .image(let context):
             if let body = style.image.body {
-                return AnyView(body(context))
-            }
-            return AnyView(
+                body(context)
+            } else {
                 MDImageView(
                     style: style,
                     url: context.url,
                     title: context.title
                 )
-            )
+            }
         case .table(let context):
             if let body = style.table.body {
-                return AnyView(body(context))
-            }
-            return AnyView(
+                body(context)
+            } else {
                 MDTableView(
                     headers: context.headers.map {
                         MDTableView.CellData(text: $0)
@@ -114,59 +152,51 @@ struct MDBlockView: View {
                     },
                     style: style.table
                 )
-            )
-        case .divider:
-            if let body = style.divider.body {
-                return AnyView(body(()))
             }
-            return AnyView(MDDividerView(style: style))
-        case .html(let context):
-            if let body = style.html.body {
-                return AnyView(body(context))
-            }
-            return AnyView(
-                MDHTMLView(
-                    text: context.text
-                )
-                .frame(maxWidth: .infinity, alignment: .leading)
-            )
+        default:
+            EmptyView()
+        }
+    }
+    
+    @ViewBuilder
+    var renderMiscBlock: some View {
+        switch item.block {
         case .footnote(let context):
             if let body = style.footnote.body {
-                return AnyView(body(context))
-            }
-            return AnyView(
+                body(context)
+            } else {
                 MDFootnoteView(
                     style: style,
                     label: context.label,
                     content: context.content
                 )
-            )
+            }
         case .mathInline(let context):
             if let body = style.mathInline.body {
-                return AnyView(body(decodeMath(context.text)))
-            }
-            return AnyView(
+                body(MDParser.decodeMath(context.text))
+            } else {
                 MDMathView(
                     style: style,
                     isInline: true,
-                    content: decodeMath(context.text)
+                    content: MDParser.decodeMath(context.text)
                 )
-            )
+            }
         case .mathBlock(let context):
             if let body = style.mathBlock.body {
-                return AnyView(body(decodeMath(context.text)))
-            }
-            return AnyView(
+                body(MDParser.decodeMath(context.text))
+            } else {
                 MDMathView(
                     style: style,
                     isInline: false,
-                    content: decodeMath(context.text)
+                    content: MDParser.decodeMath(context.text)
                 )
-            )
+            }
+        default:
+            EmptyView()
         }
     }
     
-    func headingStyle(for level: Int) -> MDTextDetailStyle {
+    private func headingStyle(for level: Int) -> MDTextDetailStyle {
         switch level {
         case 1: return style.header1
         case 2: return style.header2
@@ -175,29 +205,5 @@ struct MDBlockView: View {
         case 5: return style.header5
         default: return style.header6
         }
-    }
-    
-    private func decodeMath(_ content: String) -> String {
-        let pattern = #"\$\$.*?\$\$|\$.*?\$"#
-        guard let regex = try? NSRegularExpression(pattern: pattern) else {
-            return MDLatexParser.removeNewLinePlaceholder(text: content)
-        }
-        var text = content
-        let nsRange = NSRange(text.startIndex..<text.endIndex, in: text)
-        let matches = regex.matches(in: text, range: nsRange)
-        for match in matches.reversed() {
-            guard let range = Range(match.range, in: text) else { continue }
-            let token = String(text[range])
-            if token.hasPrefix("$$"), token.hasSuffix("$$"), token.count >= 4 {
-                let inner = String(token.dropFirst(2).dropLast(2))
-                let decoded = MDLatexParser.removeNewLinePlaceholder(text: inner)
-                text.replaceSubrange(range, with: "$$\(decoded)$$")
-            } else if token.hasPrefix("$"), token.hasSuffix("$"), token.count >= 2 {
-                let inner = String(token.dropFirst().dropLast())
-                let decoded = MDLatexParser.removeNewLinePlaceholder(text: inner)
-                text.replaceSubrange(range, with: "$\(decoded)$")
-            }
-        }
-        return text
     }
 }

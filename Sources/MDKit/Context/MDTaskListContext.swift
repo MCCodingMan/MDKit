@@ -6,7 +6,7 @@
 //
 
 /// 任务列表上下文
-public struct MDTaskListContext: Hashable {
+public struct MDTaskListContext: Hashable, Sendable {
     /// 任务项集合
     public let items: [MDTaskItem]
 

@@ -42,24 +42,20 @@ struct MDCodeView: View {
 extension MDCodeView {
     struct CodeBlock: View {
         let code: String
+        let language: String?
         let style: MDCodeStyle
         
-        private let highlightedText: AttributedString
+        @State private var highlightedText: AttributedString?
         
         init(code: String, language: String?, style: MDCodeStyle) {
             self.code = code
+            self.language = language
             self.style = style
-            self.highlightedText = {
-                if let highlightText = style.view.contentView.highlightCode {
-                    return AttributedString(highlightText(code, language))
-                }
-                return AttributedString(code)
-            }()
         }
         
         var body: some View {
             ScrollView(.horizontal, showsIndicators: true) {
-                Text(highlightedText)
+                Text(highlightedText ?? AttributedString(code))
                     .font(style.view.contentView.text.font())
                     .foregroundStyle(style.view.contentView.text.color())
                     .mdBranchView {
@@ -75,13 +71,14 @@ extension MDCodeView {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(style.view.contentView.background())
+            .task(id: code) {
+                if let highlightText = style.view.contentView.highlightCode {
+                    let text = await highlightText(code, language)
+                    self.highlightedText = AttributedString(text)
+                } else {
+                    self.highlightedText = AttributedString(code)
+                }
+            }
         }
-        
-//        private var highlightedText: AttributedString {
-//            if let highlightText = style.view.contentView.highlightCode {
-//                return AttributedString(highlightText(code, language))
-//            }
-//            return AttributedString(code)
-//        }
     }
 }

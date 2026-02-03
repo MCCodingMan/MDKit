@@ -236,7 +236,7 @@ struct ContentView: View {
         }
         .onMarkdownStyle(for: .code) { style in
             style.view.contentView.highlightCode = { code, language in
-                MDHighlightr.lightr(for: code, language: language)
+                await MDHighlightr.lightr(for: code, language: language)
             }
             style.view.contentView.text.lineSpacing = { 6 }
         }
@@ -246,7 +246,7 @@ struct ContentView: View {
     }
     
     private func startStreamingMarkdown() async {
-        items = markdown.blockItems()
+//        items = markdown.blockItems()
         
         Task {
             var appendIndex: Int = 0

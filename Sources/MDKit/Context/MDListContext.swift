@@ -6,7 +6,7 @@
 //
 
 /// 列表标记上下文
-public struct MDListMarkerContext {
+public struct MDListMarkerContext: Sendable {
     /// 当前序号
     public let index: Int
     /// 任务项勾选状态
@@ -24,7 +24,7 @@ public struct MDListMarkerContext {
 
 
 /// 列表内容上下文
-public struct MDListContext: Hashable {
+public struct MDListContext: Hashable, Sendable {
     /// 列表项集合
     public let items: [MDListItem]
     

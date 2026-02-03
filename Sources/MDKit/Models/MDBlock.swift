@@ -1,6 +1,6 @@
 import SwiftUI
 
-public enum MDBlock: Hashable {
+public enum MDBlock: Hashable, Sendable {
     case heading(MDHeadingContext)
     case paragraph(MDTextDetailContext)
     case quote(MDQuoteContext)
@@ -17,3 +17,4 @@ public enum MDBlock: Hashable {
     case mathInline(MDTextDetailContext)
     case mathBlock(MDTextDetailContext)
 }
+

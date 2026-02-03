@@ -28,7 +28,7 @@ extension MDCodeStyle {
         /// 自定义代码内容视图
         public var view: (@Sendable (String, String?) -> AnyView)?
         /// 语法高亮处理
-        public var highlightCode: (@Sendable (String, String?) -> NSAttributedString)? = nil
+        public var highlightCode: (@Sendable (String, String?) async -> NSAttributedString)? = nil
         /// 单行高度
         public var codeSingleHeight: @Sendable () -> CGFloat
         /// 内边距
@@ -39,7 +39,7 @@ extension MDCodeStyle {
         public var background: @Sendable () -> Color
         
         /// 创建内容视图样式
-        public init(view: (@Sendable (String, String?) -> AnyView)? = nil, highlightCode: (@Sendable (String, String?) -> NSAttributedString)? = nil, codeSingleHeight: @escaping @Sendable () -> CGFloat, padding: @escaping @Sendable () -> [Edge : CGFloat?], text: MDTextStyle, background: @escaping @Sendable () -> Color) {
+        public init(view: (@Sendable (String, String?) -> AnyView)? = nil, highlightCode: (@Sendable (String, String?) async -> NSAttributedString)? = nil, codeSingleHeight: @escaping @Sendable () -> CGFloat, padding: @escaping @Sendable () -> [Edge : CGFloat?], text: MDTextStyle, background: @escaping @Sendable () -> Color) {
             self.view = view
             self.highlightCode = highlightCode
             self.codeSingleHeight = codeSingleHeight

@@ -117,8 +117,31 @@ private struct BlocksVisitor: MarkupVisitor {
 }
 
 /// Markdown 解析器实现
-public enum MDParser {
+enum MDParser {
     
+    static func decodeMath(_ content: String) -> String {
+        let pattern = #"\$\$.*?\$\$|\$.*?\$"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else {
+            return MDLatexParser.removeNewLinePlaceholder(text: content)
+        }
+        var text = content
+        let nsRange = NSRange(text.startIndex..<text.endIndex, in: text)
+        let matches = regex.matches(in: text, range: nsRange)
+        for match in matches.reversed() {
+            guard let range = Range(match.range, in: text) else { continue }
+            let token = String(text[range])
+            if token.hasPrefix("$$"), token.hasSuffix("$$"), token.count >= 4 {
+                let inner = String(token.dropFirst(2).dropLast(2))
+                let decoded = MDLatexParser.removeNewLinePlaceholder(text: inner)
+                text.replaceSubrange(range, with: "$$\(decoded)$$")
+            } else if token.hasPrefix("$"), token.hasSuffix("$"), token.count >= 2 {
+                let inner = String(token.dropFirst().dropLast())
+                let decoded = MDLatexParser.removeNewLinePlaceholder(text: inner)
+                text.replaceSubrange(range, with: "$\(decoded)$")
+            }
+        }
+        return text
+    }
     
     /// 将 Markup 节点转换为块级列表
     static func blocks(from markup: Markup, depthPath: [Int] = []) -> [MDBlock] {

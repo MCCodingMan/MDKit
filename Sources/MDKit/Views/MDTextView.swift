@@ -1,5 +1,4 @@
 import SwiftUI
-import Combine
 
 public struct MDTextView: View {
     let text: String
@@ -16,11 +15,10 @@ public struct MDTextView: View {
     @State private var displayedText = ""
     @State private var fadeTexts: [String] = Array(repeating: "", count: 3)
     @State private var oldValue = ""
-    @State private var lock = NSLock()
-    @State private var completeTask = PassthroughSubject<Void, Never>()
+    @State private var moveTask: Task<Void, Never>?
     
-    var fadeTextIsEmpty: Bool {
-        fadeTexts.contains(where: { $0 != "" })
+    var hasFadeText: Bool {
+        fadeTexts.contains(where: { $0.isEmpty == false })
     }
     
     public var body: some View {
@@ -40,7 +38,7 @@ public struct MDTextView: View {
                 }
             }
             .task(id: text) {
-                if oldValue == "" && !fadeTextIsEmpty {
+                if oldValue == "" && !hasFadeText {
                     displayedText = text
                     displayedAttText = makeAttributedText(text: displayedText)
                 } else {
@@ -48,37 +46,33 @@ public struct MDTextView: View {
                 }
                 oldValue = text
             }
-            .onReceive(completeTask.debounce(for: .seconds(0.1), scheduler: RunLoop.main)) {
-                if fadeTextIsEmpty {
-                    moveFadeText()
-                }
+            .onDisappear {
+                moveTask?.cancel()
+                moveTask = nil
             }
     }
     
+    @MainActor
     private func handleTextChange(from oldValue: String, to newValue: String) {
         guard newValue != oldValue else { return }
         if newValue.hasPrefix(oldValue) {
             let appendText = String(newValue.dropFirst(oldValue.count))
             moveFadeText(with: appendText)
         } else {
-            lock.lock()
+            moveTask?.cancel()
             displayedText = text
             displayedAttText = makeAttributedText(text: displayedText)
             fadeTexts = Array(repeating: "", count: 3)
-            lock.unlock()
         }
     }
     
+    @MainActor
     private func moveFadeText(with append: String = "") {
-        lock.lock()
-        // 将第一个淡入文本加入已显示文本
         displayedText += fadeTexts[0]
         displayedAttText = makeAttributedText(text: displayedText)
-        // 所有淡入文本向前移动一位
         fadeTexts.removeFirst()
         fadeTexts.append(append)
-        completeTask.send(())
-        lock.unlock()
+        scheduleFadeMoveIfNeeded()
     }
     
     private func totalText() -> Text {
@@ -103,12 +97,18 @@ public struct MDTextView: View {
     }
     
     private func makeAttributedText(text: String) -> AttributedString {
-        var attributed = (try? AttributedString(
-            markdown: text,
-            options: AttributedString.MarkdownParsingOptions(
-                interpretedSyntax: .inlineOnlyPreservingWhitespace
-            )
-        )) ?? AttributedString(text)
+        let baseAttributed: AttributedString = {
+            if containsInlineMarkdown(text) {
+                return (try? AttributedString(
+                    markdown: text,
+                    options: AttributedString.MarkdownParsingOptions(
+                        interpretedSyntax: .inlineOnlyPreservingWhitespace
+                    )
+                )) ?? AttributedString(text)
+            }
+            return AttributedString(text)
+        }()
+        var attributed = baseAttributed
         attributed.foregroundColor = textStyle.color()
         attributed.font = textStyle.font()
         for run in attributed.runs {
@@ -146,6 +146,26 @@ public struct MDTextView: View {
             }
         }
         return attributed
+    }
+
+    private func containsInlineMarkdown(_ text: String) -> Bool {
+        let markers: [Character] = ["*", "_", "`", "~", "[", "]", "(", ")"]
+        return text.first(where: { markers.contains($0) }) != nil
+    }
+
+    @MainActor
+    private func scheduleFadeMoveIfNeeded() {
+        moveTask?.cancel()
+        guard hasFadeText else { return }
+        moveTask = Task {
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            if Task.isCancelled { return }
+            await MainActor.run {
+                if hasFadeText {
+                    moveFadeText()
+                }
+            }
+        }
     }
 }
 
@@ -206,4 +226,3 @@ public struct MDTextView: View {
 //        return attributed
 //    }
 //}
-

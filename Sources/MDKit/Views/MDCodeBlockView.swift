@@ -72,6 +72,9 @@ extension MDCodeView {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(style.view.contentView.background())
             .task(id: code) {
+                if let highlightedText, String(highlightedText.characters) == code {
+                    return
+                }
                 if let highlightText = style.view.contentView.highlightCode {
                     let text = await highlightText(code, language)
                     self.highlightedText = AttributedString(text)

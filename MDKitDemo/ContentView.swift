@@ -4,6 +4,9 @@ import Highlightr
 
 final class MDHighlightr {
     static private let shared = MDHighlightr()
+    private static let cache = NSCache<NSString, NSAttributedString>()
+    private static let lock = NSLock()
+    private static var cachedCodesByLanguage: [String: Set<String>] = [:]
     
     private let highlightr: Highlightr?
     
@@ -11,10 +14,47 @@ final class MDHighlightr {
         let highlightr = Highlightr()
         highlightr?.setTheme(to: "monokai-sublime")
         self.highlightr = highlightr
+        MDHighlightr.cache.countLimit = 200
+        MDHighlightr.cache.totalCostLimit = 2_000_000
     }
     
+    @discardableResult
     static func lightr(for code: String, language: String?) -> NSAttributedString {
-        shared.highlightr?.highlight(code, as: language, fastRender: true) ?? NSAttributedString(string: code)
+        guard let highlightr = shared.highlightr, let lowerLanguage = language?.lowercased() else {
+            return NSAttributedString(string: code)
+        }
+        
+        let key = cacheKey(code, language: lowerLanguage)
+        if let cached = cache.object(forKey: key) {
+            return cached
+        }
+        
+        let result: NSAttributedString
+        if highlightr.supportedLanguages().contains(where: { $0.lowercased() == lowerLanguage }) {
+            result = highlightr.highlight(code, as: lowerLanguage, fastRender: true) ?? NSAttributedString(string: code)
+        } else {
+            result = NSAttributedString(string: code)
+        }
+        
+        lock.lock()
+        var codes = cachedCodesByLanguage[lowerLanguage] ?? []
+        codes = Set(codes.filter { cache.object(forKey: cacheKey($0, language: lowerLanguage)) != nil })
+        if codes.isEmpty == false {
+            for existing in codes where code.hasPrefix(existing) && code.count > existing.count {
+                cache.removeObject(forKey: cacheKey(existing, language: lowerLanguage))
+                codes.remove(existing)
+            }
+        }
+        codes.insert(code)
+        cachedCodesByLanguage[lowerLanguage] = codes
+        lock.unlock()
+        
+        cache.setObject(result, forKey: key, cost: code.utf16.count)
+        return result
+    }
+    
+    private static func cacheKey(_ code: String, language: String) -> NSString {
+        "\(language)::\(code.hashValue)" as NSString
     }
 }
 
@@ -255,6 +295,11 @@ struct ContentView: View {
                 let tempAppendIndex = min(appendIndex + 3, markdown.count)
                 let streamedMarkdown = String(markdown.prefix(tempAppendIndex))
                 let decodeItems = streamedMarkdown.blockItems()
+                decodeItems.forEach {
+                    if case .code(let context) = $0.block {
+                        MDHighlightr.lightr(for: context.code, language: context.language)
+                    }
+                }
                 appendIndex = tempAppendIndex
                 await MainActor.run {
                     items = decodeItems

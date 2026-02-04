@@ -74,9 +74,8 @@ private struct BlocksVisitor: MarkupVisitor {
     
     /// 处理代码块
     mutating func visitCodeBlock(_ codeBlock: CodeBlock) -> [MDBlock] {
-        let language = codeBlock.language ?? ""
         let code = codeBlock.code.trimmingCharacters(in: .newlines)
-        return [.code(.init(code: code, language: language.isEmpty ? nil : language))]
+        return [.code(.init(code: code, language: codeBlock.language))]
     }
     
     /// 处理分割线
@@ -153,23 +152,24 @@ enum MDParser {
         let processed = MDLatexParser.process(in: markdown)
         let document = Document(parsing: processed)
         let blocks = blocks(from: document)
-        let frontBlocks = blocks.filter { block in
-            switch block {
-            case .footnote:
-                return false
-            default:
-                return true
-            }
-        }
-        let footnoteBlocks = blocks.filter { block in
-            switch block {
-            case .footnote:
-                return true
-            default:
-                return false
-            }
-        }
-        return frontBlocks + footnoteBlocks
+//        let frontBlocks = blocks.filter { block in
+//            switch block {
+//            case .footnote:
+//                return false
+//            default:
+//                return true
+//            }
+//        }
+//        let footnoteBlocks = blocks.filter { block in
+//            switch block {
+//            case .footnote:
+//                return true
+//            default:
+//                return false
+//            }
+//        }
+//        return frontBlocks + footnoteBlocks
+        return blocks
     }
     
     /// 将段落拆分为块级元素，识别图像与公式

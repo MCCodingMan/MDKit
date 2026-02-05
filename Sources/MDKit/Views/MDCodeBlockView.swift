@@ -41,45 +41,69 @@ struct MDCodeView: View {
 
 extension MDCodeView {
     struct CodeBlock: View {
-        let code: String
+        let codeLines: [String]
         let language: String?
         let style: MDCodeStyle
         
-        @State private var highlightedText: AttributedString?
+        struct HighlightModel {
+            var highlightCode: AttributedString
+            var isHighlight: Bool = false
+        }
         
+        @State private var attCodeLines: [HighlightModel] = []
+                
         init(code: String, language: String?, style: MDCodeStyle) {
-            self.code = code
+            self.codeLines = code.components(separatedBy: "\n")
             self.language = language
             self.style = style
         }
         
         var body: some View {
             ScrollView(.horizontal, showsIndicators: true) {
-                Text(highlightedText ?? AttributedString(code))
-                    .font(style.view.contentView.text.font())
-                    .foregroundStyle(style.view.contentView.text.color())
-                    .mdBranchView {
-                        if let lineSpacing = style.view.contentView.text.lineSpacing {
-                            $0.lineSpacing(lineSpacing())
-                        } else {
-                            $0
-                        }
+                VStack(alignment: .leading, spacing: style.view.contentView.text.lineSpacing?() ?? 0) {
+                    ForEach(Array(attCodeLines.enumerated()), id: \.offset) {_, code in
+                        Text(code.highlightCode)
+                            .font(style.view.contentView.text.font())
+                            .foregroundStyle(style.view.contentView.text.color())
+                            .frame(height: style.view.contentView.codeSingleHeight())
                     }
-                    .fixedSize(horizontal: true, vertical: false)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .mdEdgePadding(style.view.contentView.padding())
+                }
+                .mdEdgePadding(style.view.contentView.padding())
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(style.view.contentView.background())
-            .task(id: code) {
-                if let highlightedText, String(highlightedText.characters) == code {
-                    return
-                }
-                if let highlightText = style.view.contentView.highlightCode {
-                    let text = await highlightText(code, language)
-                    self.highlightedText = AttributedString(text)
+            .task(id: codeLines) {
+                if let highlightHandler = style.view.contentView.highlightCode {
+                    // 1. 同步行数，确保索引安全，并为新行提供初始值
+                    if attCodeLines.count < codeLines.count {
+                        for i in attCodeLines.count..<codeLines.count {
+                            attCodeLines.append(.init(highlightCode: AttributedString(codeLines[i])))
+                        }
+                    } else if attCodeLines.count > codeLines.count {
+                        attCodeLines = Array(attCodeLines.prefix(codeLines.count))
+                    }
+                    // 2. 遍历每一行进行高亮处理
+                    for i in 0..<codeLines.count {
+                        let line = codeLines[i]
+                        
+                        // 筛选逻辑：如果当前行内容匹配且已经高亮过，则跳过
+                        if i < attCodeLines.count {
+                            let current = attCodeLines[i]
+                            let contentMatches = String(current.highlightCode.characters) == line && current.isHighlight
+                            if contentMatches {
+                                continue
+                            }
+                            // 执行高亮
+                            let nsAtt = await highlightHandler(line, language)
+                            attCodeLines[i].highlightCode = AttributedString(nsAtt)
+                            attCodeLines[i].isHighlight = true
+                        }
+                    }
                 } else {
-                    self.highlightedText = AttributedString(code)
+                    if attCodeLines.count != codeLines.count {
+                        attCodeLines = codeLines.map({ .init(highlightCode: AttributedString($0)) })
+                    }
+                    
                 }
             }
         }

@@ -6,6 +6,7 @@ final class MDHighlightr {
     static private let shared = MDHighlightr()
     private static let cache = NSCache<NSString, NSAttributedString>()
     private static let lock = NSLock()
+    private static let highlightLock = NSLock()
     private static var cachedCodesByLanguage: [String: Set<String>] = [:]
     
     private let highlightr: Highlightr?
@@ -30,11 +31,13 @@ final class MDHighlightr {
         }
         
         let result: NSAttributedString
+        highlightLock.lock()
         if highlightr.supportedLanguages().contains(where: { $0.lowercased() == lowerLanguage }) {
             result = highlightr.highlight(code, as: lowerLanguage, fastRender: true) ?? NSAttributedString(string: code)
         } else {
             result = NSAttributedString(string: code)
         }
+        highlightLock.unlock()
         
         lock.lock()
         var codes = cachedCodesByLanguage[lowerLanguage] ?? []
@@ -278,13 +281,14 @@ struct ContentView: View {
             style.view.contentView.highlightCode = { code, language in
                 await MDHighlightr.lightr(for: code, language: language)
             }
-            style.view.contentView.text.lineSpacing = { 6 }
+//            style.view.contentView.text.lineSpacing = { 0 }
         }
         .onMarkdownStyle(for: .image) { style in
             style.layout.height = { 220 }
         }
     }
     
+    @MainActor
     private func startStreamingMarkdown() async {
 //        items = markdown.blockItems()
         

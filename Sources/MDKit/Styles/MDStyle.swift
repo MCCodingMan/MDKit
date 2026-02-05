@@ -219,12 +219,12 @@ public struct MDStyle: Sendable {
                 contentView: MDCodeStyle.ContentViewStyle(
                     view: nil,
                     highlightCode: nil,
-                    codeSingleHeight: { 20 },
-                    padding: { [.leading: 16, .trailing: 16, .top: 8, .bottom: 8] },
+                    codeSingleHeight: { nil },
+                    padding: { [.leading: 16, .trailing: 16, .top: 16, .bottom: 16] },
                     text: MDTextStyle(
                         font: { .system(size: 14).monospaced() },
                         color: { .white },
-                        lineSpacing: { 6 }
+                        lineSpacing: { 4 }
                     ),
                     background: { .clear }
                 )

@@ -16,6 +16,5 @@ struct MDParagraphView: View {
             textStyle: style.paragraph.text,
             inlineTextStyle: style.inline
         )
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

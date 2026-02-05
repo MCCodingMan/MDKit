@@ -23,6 +23,7 @@ public struct MDTextView: View {
     
     public var body: some View {
         totalText()
+            .frame(maxWidth: .infinity, alignment: .leading)
             .mdBranchView {
                 if let lineSpacing = textStyle.lineSpacing {
                     $0.lineSpacing(lineSpacing())

@@ -17,7 +17,6 @@ struct MDHeadingView: View {
             textStyle: headingStyle.text,
             inlineTextStyle: style.inline
         )
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     

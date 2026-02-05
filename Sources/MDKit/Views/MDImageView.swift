@@ -38,6 +38,7 @@ struct MDImageView: View {
             .frame(maxWidth: .infinity)
             if let title, title.isEmpty == false {
                 Text(title)
+                    .equatable()
                     .font(style.image.text.font())
                     .foregroundColor(style.image.text.color())
                     .frame(maxWidth: .infinity, alignment: style.image.layout.titleAlignment())

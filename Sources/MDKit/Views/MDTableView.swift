@@ -188,6 +188,7 @@ extension MDTableView {
         
         var body: some View {
             Text(text)
+                .equatable()
                 .mdEdgePadding(style.view.cellPadding())
                 .lineLimit(nil)  // 允许多行
                 .frame(maxWidth: style.view.cellMaxWidth(), alignment: style.view.cellAlignment())

@@ -1,11 +1,11 @@
 import SwiftUI
 
-public struct MDTextView: View {
+struct MDTextView: View {
     let text: String
     let textStyle: MDTextStyle
     let inlineTextStyle: MDInlineTextStyle
     
-    public init(text: String, textStyle: MDTextStyle, inlineTextStyle: MDInlineTextStyle) {
+    init(text: String, textStyle: MDTextStyle, inlineTextStyle: MDInlineTextStyle) {
         self.text = text
         self.textStyle = textStyle
         self.inlineTextStyle = inlineTextStyle
@@ -21,8 +21,9 @@ public struct MDTextView: View {
         fadeTexts.contains(where: { $0.isEmpty == false })
     }
     
-    public var body: some View {
+    var body: some View {
         totalText()
+            .equatable()
             .frame(maxWidth: .infinity, alignment: .leading)
             .mdBranchView {
                 if let lineSpacing = textStyle.lineSpacing {

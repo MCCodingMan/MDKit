@@ -75,7 +75,7 @@ private struct BlocksVisitor: MarkupVisitor {
     /// 处理代码块
     mutating func visitCodeBlock(_ codeBlock: CodeBlock) -> [MDBlock] {
         let code = codeBlock.code.trimmingCharacters(in: .newlines)
-        return [.code(.init(code: code, language: codeBlock.language))]
+        return [.code(.init(code: MDParser.decodeLatexTag(code), language: MDParser.decodeLatexTag(codeBlock.language ?? "")))]
     }
     
     /// 处理分割线
@@ -85,7 +85,7 @@ private struct BlocksVisitor: MarkupVisitor {
     
     /// 处理 HTML 块
     mutating func visitHTMLBlock(_ htmlBlock: HTMLBlock) -> [MDBlock] {
-        [.html(.init(text: htmlBlock.rawHTML))]
+        [.html(.init(text: MDParser.decodeLatexTag(htmlBlock.rawHTML)))]
     }
     
     /// 处理表格，规范表头与表体
@@ -105,20 +105,20 @@ private struct BlocksVisitor: MarkupVisitor {
     
     /// 处理图片
     mutating func visitImage(_ image: Image) -> [MDBlock] {
-        [.image(.init(alt: MDParser.inlineText(from: image), url: image.source ?? "", title: image.title))]
+        [.image(.init(alt: MDParser.inlineText(from: image), url: MDParser.decodeLatexTag(image.source ?? ""), title: MDParser.decodeLatexTag(image.title ?? "")))]
     }
     
     /// 处理链接
     mutating func visitLink(_ link: Link) -> [MDBlock] {
         let title = MDParser.inlineText(from: link)
-        return [.link(.init(title: title, url: link.destination ?? ""))]
+        return [.link(.init(title: title, url: MDParser.decodeLatexTag(link.destination ?? "")))]
     }
 }
 
 /// Markdown 解析器实现
 enum MDParser {
     
-    static func decodeMath(_ content: String) -> String {
+    static func decodeLatexTag(_ content: String) -> String {
         let pattern = #"\$\$.*?\$\$|\$.*?\$"#
         guard let regex = try? NSRegularExpression(pattern: pattern) else {
             return MDLatexParser.removeNewLinePlaceholder(text: content)
@@ -152,23 +152,6 @@ enum MDParser {
         let processed = MDLatexParser.process(in: markdown)
         let document = Document(parsing: processed)
         let blocks = blocks(from: document)
-//        let frontBlocks = blocks.filter { block in
-//            switch block {
-//            case .footnote:
-//                return false
-//            default:
-//                return true
-//            }
-//        }
-//        let footnoteBlocks = blocks.filter { block in
-//            switch block {
-//            case .footnote:
-//                return true
-//            default:
-//                return false
-//            }
-//        }
-//        return frontBlocks + footnoteBlocks
         return blocks
     }
     
@@ -203,7 +186,7 @@ enum MDParser {
         for child in children {
             if let image = child as? Image {
                 flushBuffer()
-                blocks.append(.image(.init(alt: inlineText(from: image), url: image.source ?? "", title: image.title)))
+                blocks.append(.image(.init(alt: inlineText(from: image), url: decodeLatexTag(image.source ?? ""), title: decodeLatexTag(image.title ?? ""))))
             } else {
                 buffer.append(child)
             }
@@ -218,7 +201,7 @@ enum MDParser {
     static func inlineText(from markup: Markup) -> String {
         // 纯文本节点，直接返回其字符串内容
         if let text = markup as? Text {
-            return text.string
+            return decodeLatexTag(text.string)
         }
         // 斜体节点，递归拼接子节点并包裹 *
         if let emphasis = markup as? Emphasis {
@@ -234,7 +217,7 @@ enum MDParser {
         }
         // 行内代码，使用反引号包裹原始代码
         if let inlineCode = markup as? InlineCode {
-            return "`" + inlineCode.code + "`"
+            return "`" + decodeLatexTag(inlineCode.code) + "`"
         }
         // 硬换行，保留为换行符
         if markup is LineBreak {
@@ -247,12 +230,12 @@ enum MDParser {
         // 链接节点，递归生成文本标签并拼接目标地址
         if let link = markup as? Link {
             let label = link.children.map { inlineText(from: $0) }.joined()
-            return "[\(label)](\(link.destination ?? ""))"
+            return "[\(decodeLatexTag(label))](\(decodeLatexTag(link.destination ?? "")))"
         }
         // 图片节点，递归生成 alt 文本并拼接图片地址
         if let image = markup as? Image {
             let alt = image.children.map { inlineText(from: $0) }.joined()
-            return "![\(alt)](\(image.source ?? ""))"
+            return "![\(decodeLatexTag(alt))](\(decodeLatexTag(image.source ?? "")))"
         }
         // 其他内联节点，递归展开其子节点并拼接
         return markup.children.map { inlineText(from: $0) }.joined()
@@ -376,7 +359,7 @@ enum MDParser {
             return inlineText(from: heading)
         }
         if let codeBlock = markup as? CodeBlock {
-            return codeBlock.code
+            return decodeLatexTag(codeBlock.code)
         }
         let text = markup.children.map { blockText(from: $0) }.joined(separator: "\n")
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -407,8 +390,9 @@ enum MDParser {
     static func collectOrderedItems(from list: OrderedList, depthPath: [Int]) -> [ParsedListItem] {
         var result: [ParsedListItem] = []
         let items = list.children.compactMap { $0 as? ListItem }
+        let start = Int(list.startIndex)
         for (index, item) in items.enumerated() {
-            let itemPath = depthPath + [index + 1]
+            let itemPath = depthPath + [start + index]
             let content = listItemContent(from: item, depthPath: itemPath)
             let checked = checkboxValue(from: item)
             result.append(ParsedListItem(text: content.text, depthPath: itemPath, checked: checked, blocks: content.blocks))

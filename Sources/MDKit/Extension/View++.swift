@@ -28,13 +28,13 @@ extension View {
         if #available(iOS 17.0, *) {
             onChange(of: value, action)
         } else {
-            modifier(OnChangeModifier(value: value, action: action))
+            modifier(MDOnChangeModifier(value: value, action: action))
         }
     }
 }
 
 
-private struct OnChangeModifier<V: Equatable>: ViewModifier {
+private struct MDOnChangeModifier<V: Equatable>: ViewModifier {
     let value: V
     let action: (V, V) -> Void
     
@@ -83,5 +83,25 @@ private struct MDEdgePaddingModifier: ViewModifier {
         case .trailing:
             return .trailing
         }
+    }
+}
+
+private struct MDFirstAppearModifier: ViewModifier {
+    let perform: () -> Void
+    @State private var isAppear = false
+    func body(content: Content) -> some View {
+        content
+            .onAppear {
+                if !isAppear {
+                    perform()
+                    isAppear = true
+                }
+            }
+    }
+}
+
+extension View {
+    func onFirstAppear(perform: @escaping () -> Void) -> some View {
+        modifier(MDFirstAppearModifier(perform: perform))
     }
 }

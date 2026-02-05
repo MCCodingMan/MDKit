@@ -58,6 +58,7 @@ struct MDOrderListView: View {
             markerView(context)
         } else {
             Text(defaultText)
+                .equatable()
                 .font(style.markerFont())
                 .foregroundColor(style.markerColor())
         }

@@ -173,22 +173,22 @@ struct MDBlockView: View {
             }
         case .mathInline(let context):
             if let body = style.mathInline.body {
-                body(MDParser.decodeMath(context.text))
+                body(MDParser.decodeLatexTag(context.text))
             } else {
                 MDMathView(
                     style: style,
                     isInline: true,
-                    content: MDParser.decodeMath(context.text)
+                    content: MDParser.decodeLatexTag(context.text)
                 )
             }
         case .mathBlock(let context):
             if let body = style.mathBlock.body {
-                body(MDParser.decodeMath(context.text))
+                body(MDParser.decodeLatexTag(context.text))
             } else {
                 MDMathView(
                     style: style,
                     isInline: false,
-                    content: MDParser.decodeMath(context.text)
+                    content: MDParser.decodeLatexTag(context.text)
                 )
             }
         default:

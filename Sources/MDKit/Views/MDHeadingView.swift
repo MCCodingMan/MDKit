@@ -7,21 +7,27 @@
 
 import SwiftUI
 
-struct MDHeadingView: View {
+struct MDHeadingView: MDBaseView {
     let style: MDStyle
-    let level: Int
-    let text: String
+    let node: MDASTNode
     var body: some View {
-        MDTextView(
-            text: text,
-            textStyle: headingStyle.text,
-            inlineTextStyle: style.inline
-        )
-        .frame(maxWidth: .infinity, alignment: .leading)
+        if let header {
+            MDTextView(
+                text: header.text,
+                textStyle: headingStyle(for: header.level).text,
+                inlineTextStyle: style.inline
+            )
+        }
     }
     
+    var header: (level: Int, text: String)? {
+        if case let .heading(level, content) = node.content {
+            return (level, content)
+        }
+        return nil
+    }
     
-    var headingStyle: MDTextDetailStyle {
+    func headingStyle(for level: Int) -> MDTextDetailStyle {
         switch level {
         case 1: return style.header1
         case 2: return style.header2

@@ -161,7 +161,8 @@ public struct MDStyle: Sendable {
             ),
             marker: MDListStyle.MarkerStyle(
                 markerView: nil,
-                markerFont: { .system(size: 16) },
+                markerFontSize: { 16 },
+                markerFontWeight: { .regular },
                 markerColor: { .black }
             ),
             view: MDListStyle.ViewStyle(
@@ -178,7 +179,8 @@ public struct MDStyle: Sendable {
             ),
             marker: MDListStyle.MarkerStyle(
                 markerView: nil,
-                markerFont: { .system(size: 16) },
+                markerFontSize: { 16 },
+                markerFontWeight: { .regular },
                 markerColor: { .black }
             ),
             view: MDListStyle.ViewStyle(
@@ -219,13 +221,10 @@ public struct MDStyle: Sendable {
                 contentView: MDCodeStyle.ContentViewStyle(
                     view: nil,
                     highlightCode: nil,
-                    codeSingleHeight: { 20 },
-                    padding: { [.leading: 16, .trailing: 16, .top: 8, .bottom: 8] },
-                    text: MDTextStyle(
-                        font: { .system(size: 14).monospaced() },
-                        color: { .white },
-                        lineSpacing: { 6 }
-                    ),
+                    codeSingleHeight: { 22 },
+                    padding: { [.leading: 16, .trailing: 16, .top: 16, .bottom: 16] },
+                    textFontSize: { 16 },
+                    codeColor: { .white },
                     background: { .clear }
                 )
             ),

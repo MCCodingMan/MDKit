@@ -1,11 +1,11 @@
 import SwiftUI
 
-public struct MDTextView: View {
+struct MDTextView: View {
     let text: String
     let textStyle: MDTextStyle
     let inlineTextStyle: MDInlineTextStyle
     
-    public init(text: String, textStyle: MDTextStyle, inlineTextStyle: MDInlineTextStyle) {
+    init(text: String, textStyle: MDTextStyle, inlineTextStyle: MDInlineTextStyle) {
         self.text = text
         self.textStyle = textStyle
         self.inlineTextStyle = inlineTextStyle
@@ -21,8 +21,10 @@ public struct MDTextView: View {
         fadeTexts.contains(where: { $0.isEmpty == false })
     }
     
-    public var body: some View {
+    var body: some View {
         totalText()
+            .equatable()
+            .frame(maxWidth: .infinity, alignment: .leading)
             .mdBranchView {
                 if let lineSpacing = textStyle.lineSpacing {
                     $0.lineSpacing(lineSpacing())
@@ -158,7 +160,7 @@ public struct MDTextView: View {
         moveTask?.cancel()
         guard hasFadeText else { return }
         moveTask = Task {
-            try? await Task.sleep(nanoseconds: 100_000_000)
+            try? await Task.sleep(nanoseconds: 50_000_000)
             if Task.isCancelled { return }
             await MainActor.run {
                 if hasFadeText {
@@ -226,3 +228,9 @@ public struct MDTextView: View {
 //        return attributed
 //    }
 //}
+
+extension MDTextView: Equatable {
+    nonisolated static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.text == rhs.text
+    }
+}

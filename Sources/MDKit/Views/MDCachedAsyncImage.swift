@@ -60,8 +60,10 @@ struct MDCachedAsyncImage<Content: View, Placeholder: View, FailurView: View>: V
                 failur()
             }
         }
-        .task(id: url) {
-            await loadImage()
+        .onFirstAppear {
+            Task {
+                await loadImage()
+            }
         }
     }
     
@@ -94,8 +96,6 @@ struct MDCachedAsyncImage<Content: View, Placeholder: View, FailurView: View>: V
                 self.image = decodedImage
                 MDImageCache.shared.setImage(decodedImage, forKey: cacheKey)
             }
-        } catch {
-            print("Image load failed: \(error)")
-        }
+        } catch { }
     }
 }

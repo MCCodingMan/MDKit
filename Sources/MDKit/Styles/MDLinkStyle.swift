@@ -8,7 +8,7 @@
 import SwiftUI
 
 public struct MDLinkStyle: MDContentStyle {
-    public typealias Value = MDLinkContext
+    public typealias Value = MDASTNode
     
     public typealias Content = AnyView
     

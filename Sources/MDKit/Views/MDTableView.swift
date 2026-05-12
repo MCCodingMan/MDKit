@@ -8,7 +8,7 @@
 import SwiftUI
 
 // MARK: - Table Layout
-struct TableLayout: Layout {
+struct MDTableLayout: Layout {
     let columnCount: Int
     let headerRowCount: Int
     let bodyRowCount: Int
@@ -129,18 +129,17 @@ struct TableLayout: Layout {
 }
 
 // MARK: - MDTableView with Layout
-struct MDTableView: View {
-    let headers: [CellData]
-    let rows: [[CellData]]
-    let style: MDTableStyle
+struct MDTableView: MDBaseView {
+    let style: MDStyle
+    let node: MDASTNode
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: true) {
-            TableLayout(
+            MDTableLayout(
                 columnCount: headers.count,
                 headerRowCount: 1,
                 bodyRowCount: rows.count,
-                alignment: style.view.cellAlignment()
+                alignment: style.table.view.cellAlignment()
             ) {
                 // 表头 cells
                 ForEach(Array(headers.enumerated()), id: \.offset) { idx, header in
@@ -152,7 +151,7 @@ struct MDTableView: View {
                         isLast: idx == headers.count - 1,
                         style: style
                     )
-                    .background(style.view.headerBackgroundColor())
+                    .background(style.table.view.headerBackgroundColor())
                 }
                 
                 // 数据行 cells
@@ -166,13 +165,33 @@ struct MDTableView: View {
                             isLast: colIdx == row.count - 1,
                             style: style
                         )
-                        .background(style.view.bodyBackgroundColor())
+                        .background(style.table.view.bodyBackgroundColor())
                     }
                 }
             }
-            .radiusBorder(style: style.view.border)
+            .radiusBorder(style: style.table.view.border)
         }
-        .cornerRadius(style.view.cornerRadius())
+        .cornerRadius(style.table.view.cornerRadius())
+    }
+    
+    var tableContent: (headers: [String], rows: [[String]])? {
+        if case let .table(headers, rows) = node.content {
+            return (headers, rows)
+        }
+        return nil
+    }
+    
+    var headers: [CellData] {
+        tableContent?.headers.map {
+            MDTableView.CellData(text: $0)
+        } ?? []
+    }
+    var rows: [[CellData]] {
+        tableContent?.rows.map {
+            $0.map({
+                MDTableView.CellData(text: $0)
+            })
+        } ?? []
     }
 }
 
@@ -184,31 +203,33 @@ extension MDTableView {
         let columnIndex: Int
         let rowIndex: Int
         let isLast: Bool
-        let style: MDTableStyle
+        let style: MDStyle
         
         var body: some View {
-            Text(text)
-                .mdEdgePadding(style.view.cellPadding())
+//            Text(text)
+            MDTextView(text: text, textStyle: style.table.text.bodyText, inlineTextStyle: style.inline)
+                .equatable()
+                .mdEdgePadding(style.table.view.cellPadding())
                 .lineLimit(nil)  // 允许多行
-                .frame(maxWidth: style.view.cellMaxWidth(), alignment: style.view.cellAlignment())
+                .frame(maxWidth: style.table.view.cellMaxWidth(), alignment: style.table.view.cellAlignment())
                 .fixedSize(horizontal: false, vertical: true)  // 允许水平方向换行
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: style.view.cellAlignment())
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: style.table.view.cellAlignment())
                 .mdBranchView {
                     if isHeader {
-                        $0.font(style.text.headerText.font())
-                            .foregroundColor(style.text.headerText.color())
+                        $0.font(style.table.text.headerText.font())
+                            .foregroundColor(style.table.text.headerText.color())
                             .mdBranchView { cell in
-                                if let alignment = style.text.headerText.multilineTextAlignment {
+                                if let alignment = style.table.text.headerText.multilineTextAlignment {
                                     cell.multilineTextAlignment(alignment())
                                 } else {
                                     cell
                                 }
                             }
                     } else {
-                        $0.font(style.text.bodyText.font())
-                            .foregroundColor(style.text.bodyText.color())
+                        $0.font(style.table.text.bodyText.font())
+                            .foregroundColor(style.table.text.bodyText.color())
                             .mdBranchView { cell in
-                                if let alignment = style.text.bodyText.multilineTextAlignment {
+                                if let alignment = style.table.text.bodyText.multilineTextAlignment {
                                     cell.multilineTextAlignment(alignment())
                                 } else {
                                     cell
@@ -219,11 +240,11 @@ extension MDTableView {
                 .overlay(alignment: .trailing) {
                     if !isLast {
                         if isHeader {
-                            style.view.headerLine.lineColor()
-                                .frame(width: style.view.headerLine.lineWidth())
+                            style.table.view.headerLine.lineColor()
+                                .frame(width: style.table.view.headerLine.lineWidth())
                         } else {
-                            style.view.bodyLine.lineColor()
-                                .frame(width: style.view.bodyLine.lineWidth())
+                            style.table.view.bodyLine.lineColor()
+                                .frame(width: style.table.view.bodyLine.lineWidth())
                         }
                     }
                 }
@@ -235,5 +256,15 @@ extension MDTableView {
     struct CellData: Identifiable, Hashable {
         let id = UUID()
         let text: String
+    }
+}
+
+extension MDTableView.CellContent: Equatable {
+    nonisolated static func == (lhs: MDTableView.CellContent, rhs: MDTableView.CellContent) -> Bool {
+        lhs.isHeader == rhs.isHeader &&
+        lhs.text == rhs.text &&
+        lhs.columnIndex == rhs.columnIndex &&
+        lhs.rowIndex == rhs.rowIndex &&
+        lhs.isLast == rhs.isLast
     }
 }

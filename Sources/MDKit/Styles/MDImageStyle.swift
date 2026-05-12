@@ -43,7 +43,7 @@ extension MDImageStyle {
 /// 图片样式配置
 public struct MDImageStyle: MDContentStyle {
     /// 输入上下文类型
-    public typealias Value = MDImageContext
+    public typealias Value = MDASTNode
     /// 渲染内容类型
     public typealias Content = AnyView
     /// 自定义渲染闭包

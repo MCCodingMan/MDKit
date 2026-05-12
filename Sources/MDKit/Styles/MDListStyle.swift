@@ -34,20 +34,24 @@ extension MDListStyle {
     /// 列表标记样式
     public struct MarkerStyle: Sendable{
         /// 自定义标记视图
-        public var markerView: (@Sendable (MDListMarkerContext) -> AnyView)?
+        public var markerView: (@MainActor @Sendable (MDListMarkerContext) -> AnyView)?
         /// 标记字体
-        public var markerFont: @Sendable () -> Font
+        public var markerFontSize: @Sendable () -> CGFloat
+        /// 标记字体
+        public var markerFontWeight: @Sendable () -> Font.Weight
         /// 标记颜色
         public var markerColor: @Sendable () -> Color
         
         /// 创建列表标记样式
         public init(
-            markerView: (@Sendable (MDListMarkerContext) -> AnyView)? = nil,
-            markerFont: @escaping @Sendable () -> Font,
+            markerView: (@MainActor @Sendable (MDListMarkerContext) -> AnyView)? = nil,
+            markerFontSize: @escaping @Sendable () -> CGFloat,
+            markerFontWeight: @escaping @Sendable () -> Font.Weight,
             markerColor: @escaping @Sendable () -> Color
         ) {
             self.markerView = markerView
-            self.markerFont = markerFont
+            self.markerFontSize = markerFontSize
+            self.markerFontWeight = markerFontWeight
             self.markerColor = markerColor
         }
     }
@@ -57,7 +61,7 @@ extension MDListStyle {
 /// 列表样式配置
 public struct MDListStyle: MDContentStyle {
     /// 输入上下文类型
-    public typealias Value = MDListContext
+    public typealias Value = MDASTNode
     /// 渲染内容类型
     public typealias Content = AnyView
     /// 自定义渲染闭包

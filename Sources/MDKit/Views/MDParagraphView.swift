@@ -7,15 +7,21 @@
 
 import SwiftUI
 
-struct MDParagraphView: View {
+struct MDParagraphView: MDBaseView {
     let style: MDStyle
-    let text: String
+    let node: MDASTNode
     var body: some View {
         MDTextView(
             text: text,
             textStyle: style.paragraph.text,
             inlineTextStyle: style.inline
         )
-        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    var text: String {
+        if case let .text(text) = node.content {
+            return text
+        }
+        return ""
     }
 }

@@ -9,17 +9,26 @@
 import SwiftUI  
 import UIKit
 
-struct MDHTMLView: View {
-    let text: String
+struct MDHTMLView: MDBaseView {
+    let style: MDStyle
+    let node: MDASTNode
     private let attributed: NSAttributedString?
     
-    init(text: String) {
-        self.text = text
+    init(style: MDStyle, node: MDASTNode) {
+        let text =  {
+            if case let .html(text) = node.content {
+                return text
+            }
+            return nil
+        }() ?? ""
+        self.style = style
+        self.node = node
         self.attributed = MDHTMLView.makeNSAttributedString(text)
     }
     
     var body: some View {  
         HTMLTextView(attributed: attributed)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     private static func makeNSAttributedString(_ text: String) -> NSAttributedString? {

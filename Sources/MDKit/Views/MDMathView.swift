@@ -8,21 +8,29 @@
 import SwiftUI
 import LaTeXSwiftUI
 
-struct MDMathView: View {
+struct MDMathView: MDBaseView {
     let style: MDStyle
-    let isInline: Bool
-    let content: String
+    let node: MDASTNode
     
     var mathStyle: MDMathStyle {
-        isInline ? style.mathInline : style.mathBlock
+        node.kind is MDMathInlineKind ? style.mathInline : style.mathBlock
     }
     
     var body: some View {
-        LaTeX(content)
-            .font(mathStyle.text.font())
-            .renderingStyle(.original)
-            .renderingAnimation(.easeInOut)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .id(content)
+        if let mathContent {
+            LaTeX(mathContent.decodeLatexTag())
+                .font(mathStyle.text.font())
+                .renderingStyle(.original)
+                .renderingAnimation(.easeInOut)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .id(mathContent)
+        }
+    }
+    
+    var mathContent: String? {
+        if case let .text(content) = node.content {
+            return content
+        }
+        return nil
     }
 }

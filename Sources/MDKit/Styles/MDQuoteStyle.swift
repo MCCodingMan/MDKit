@@ -55,7 +55,7 @@ public struct MDQuoteStyle: MDContentStyle {
     }
     
     /// 输入上下文类型
-    public typealias Value = MDQuoteContext
+    public typealias Value = MDASTNode
     /// 渲染内容类型
     public typealias Content = AnyView
     /// 自定义渲染闭包

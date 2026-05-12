@@ -8,7 +8,7 @@
 import SwiftUI
 
 public struct MDHtmlStyle: MDContentStyle {
-    public typealias Value = MDTextDetailContext
+    public typealias Value = MDASTNode
     
     public typealias Content = AnyView
     

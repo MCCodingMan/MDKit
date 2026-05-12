@@ -7,19 +7,15 @@
 
 import SwiftUI
 
-struct MDQuoteView: View {
+struct MDQuoteView: MDBaseView {
     let style: MDStyle
-    let lines: [String]
+    let node: MDASTNode
     var body: some View {
         HStack(alignment: .top, spacing: style.quote.view.lineSpacing()) {
             quoteLineView(style.quote.line)
             VStack(alignment: .leading, spacing: style.quote.view.lineSpacing()) {
-                ForEach(lines.indices, id: \.self) { index in
-                    MDTextView(
-                        text: lines[index],
-                        textStyle: style.quote.text,
-                        inlineTextStyle: style.inline
-                    )
+                ForEach(node.children, id: \.position) { quoteChildren in
+                    MDBlockView(node: quoteChildren)
                 }
             }
             Spacer(minLength: 0)

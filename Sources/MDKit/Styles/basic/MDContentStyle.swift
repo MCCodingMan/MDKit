@@ -15,7 +15,7 @@ public protocol MDContentStyle: Sendable {
     associatedtype Content: View
     
     /// 通过输入值构建视图
-    typealias bodyBuilder = @Sendable (Value) -> Content
+    typealias bodyBuilder = @MainActor @Sendable (Value) -> Content
     
     /// 自定义渲染闭包
     var body: bodyBuilder? { get set }

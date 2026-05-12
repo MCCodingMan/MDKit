@@ -7,41 +7,51 @@
 
 import SwiftUI
 
-struct MDImageView: View {
+struct MDImageView: MDBaseView {
     let style: MDStyle
-    let url: String
-    let title: String?
+    let node: MDASTNode
     var body: some View {
-        VStack(spacing: style.image.layout.titleSpacing()) {
-            MDCachedAsyncImage(url: URL(string: url)) { image in
-                image
-                    .resizable()
-                    .scaledToFit()
-            } placeholder: {
-                if let loadingView = style.image.view.loadingView {
-                    loadingView()
-                } else {
-                    Color.gray.opacity(0.1)
-                        .overlay {
-                            ProgressView()
-                        }
+        if let imageContent {
+            VStack(spacing: style.image.layout.titleSpacing()) {
+                MDCachedAsyncImage(url: URL(string: imageContent.source)) { image in
+                    image
+                        .resizable()
+                        .scaledToFit()
+                } placeholder: {
+                    if let loadingView = style.image.view.loadingView {
+                        loadingView()
+                    } else {
+                        Color.gray.opacity(0.1)
+                            .overlay {
+                                ProgressView()
+                            }
+                    }
+                } failur: {
+                    if let failureView = style.image.view.failureView {
+                        failureView()
+                    } else {
+                        Color.gray.opacity(0.1)
+                    }
                 }
-            } failur: {
-                if let failureView = style.image.view.failureView {
-                    failureView()
-                } else {
-                    Color.gray.opacity(0.1)
+                .cornerRadius(style.image.layout.cornerRadius())
+                .frame(height: style.image.layout.height())
+                .frame(maxWidth: .infinity)
+                if let title = imageContent.title, title.isEmpty == false {
+                    Text(title)
+                        .equatable()
+                        .font(style.image.text.font())
+                        .foregroundColor(style.image.text.color())
+                        .frame(maxWidth: .infinity, alignment: style.image.layout.titleAlignment())
                 }
-            }
-            .cornerRadius(style.image.layout.cornerRadius())
-            .frame(height: style.image.layout.height())
-            .frame(maxWidth: .infinity)
-            if let title, title.isEmpty == false {
-                Text(title)
-                    .font(style.image.text.font())
-                    .foregroundColor(style.image.text.color())
-                    .frame(maxWidth: .infinity, alignment: style.image.layout.titleAlignment())
             }
         }
+    }
+    
+    
+    var imageContent: (title: String?, source: String)? {
+        if case let .image(title, source) = node.content {
+            return (title, source ?? "")
+        }
+        return nil
     }
 }

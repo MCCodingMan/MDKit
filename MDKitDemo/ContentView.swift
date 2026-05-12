@@ -6,6 +6,7 @@ final class MDHighlightr {
     static private let shared = MDHighlightr()
     private static let cache = NSCache<NSString, NSAttributedString>()
     private static let lock = NSLock()
+    private static let highlightLock = NSLock()
     private static var cachedCodesByLanguage: [String: Set<String>] = [:]
     
     private let highlightr: Highlightr?
@@ -30,11 +31,13 @@ final class MDHighlightr {
         }
         
         let result: NSAttributedString
+        highlightLock.lock()
         if highlightr.supportedLanguages().contains(where: { $0.lowercased() == lowerLanguage }) {
             result = highlightr.highlight(code, as: lowerLanguage, fastRender: true) ?? NSAttributedString(string: code)
         } else {
             result = NSAttributedString(string: code)
         }
+        highlightLock.unlock()
         
         lock.lock()
         var codes = cachedCodesByLanguage[lowerLanguage] ?? []
@@ -57,6 +60,52 @@ final class MDHighlightr {
         "\(language)::\(code.hashValue)" as NSString
     }
 }
+
+let a = ##"""
+    - 方案 B：macOS 桌面客户端（Apple Silicon 原生）
+      - 一、前提确认
+        - 设备与系统
+          - Mac，Apple Silicon（M1/M2 等）
+          - macOS 11+（以官方公告为准）
+        - 账号信息
+          - 是否已有 API Key：若有，请准备好；如无，请告知以便包含获取路径
+      - 二、下载安装与启动
+        - 1) 下载入口
+            - 官方桌面版：选择 ARM64 / Apple Silicon 版本
+            - 替代路径（导航困难时）：官网 → 下载 → macOS 桌面客户端 → Apple Silicon（ARM64）
+        - 2) 安装与首次启动
+          - 安装：将 DMG 拖拽到应用程序文件夹
+          - 信任设置（首次启动提示时）
+            - 系统偏好设置 → 安全性与隐私 → 常规 → 允许来自已识别开发者的应用
+            - 如仍提示，在“通用”中点击“仍要打开”
+          - 启动后完成初次配置向导
+      - 三、API Key 绑定与激活
+        - 应用内进入 设置 → API Key
+        - 粘贴并保存 API Key
+        - 无 Key 时：选择“获取密钥”或“试用”，按官方流程申请
+      - 四、登录与使用
+        - 登录：使用账户信息
+        - 启动对话：选择模型与场景，开始对话
+        - 基本操作：输入问题 → 发送 → 查看响应；可在设置调整参数（如温度、最大长度）
+      - 五、常见问题与排障
+        - 无法连接：检查网络/VPN/代理，重新绑定 API Key
+        - 首次启动慢：等待本地模型初始化，资源不足时请提升可用内存/CPU
+        - 权限问题：确保应用具备必要权限（网络、文件访问等）
+      - 六、可选扩展输出（可直接粘贴使用）
+        - 下载链接文本模板（ARM64/Apple Silicon）
+        - 安装与首次启动的逐字文本清单
+        - API Key 绑定步骤的截图式指引
+      - 七、需要我提供的后续内容
+        - 具体下载链接文本（ARM64/Apple Silicon）
+        - 安装与首次启动的逐字文本清单
+        - API Key 绑定步骤的截图式指引
+      - 八、定制化信息请求
+        - 你的 macOS 版本号（如 macOS 13.6）
+        - 是否已有 API Key，若有请提供获取方式或直接提供 Key（请注意隐私）
+        - 是否需要完整的“入口链接 + 逐步清单”的文本版本
+    
+    - _附注_: 如果愿意，我也可以生成一页式的“入口链接 + 逐步清单”文本，直接粘贴使用。
+    """##
 
 struct ContentView: View {
     let markdown = ##"""
@@ -249,13 +298,13 @@ struct ContentView: View {
         """##
     
     @State private var hasStartedStreaming = false
-    @State private var items: [MDBlockItem] = []
+    @State private var items: [MDASTNode] = []
     
     var body: some View {
         ScrollView(.vertical) {
             LazyVStack(alignment: .leading, spacing: 0) {
-                ForEach(items) { item in
-                    MDRenderer.makeBlockView(item: item)
+                ForEach(Array(items.enumerated()), id: \.offset) { _, child in
+                    MDRender.makeNodeView(node: child)
                 }
                 .padding(.vertical, 6)
             }
@@ -278,28 +327,26 @@ struct ContentView: View {
             style.view.contentView.highlightCode = { code, language in
                 await MDHighlightr.lightr(for: code, language: language)
             }
-            style.view.contentView.text.lineSpacing = { 6 }
         }
         .onMarkdownStyle(for: .image) { style in
             style.layout.height = { 220 }
         }
     }
     
+    @MainActor
     private func startStreamingMarkdown() async {
-//        items = markdown.blockItems()
-        
+//        let temp = a.blockNode()
+//        items = temp
+//        print(items)
+
         Task {
             var appendIndex: Int = 0
-            while appendIndex < markdown.count {
+            let textTTT = a
+            while appendIndex < textTTT.count {
                 try? await Task.sleep(for: .seconds(0.01))
-                let tempAppendIndex = min(appendIndex + 3, markdown.count)
-                let streamedMarkdown = String(markdown.prefix(tempAppendIndex))
-                let decodeItems = streamedMarkdown.blockItems()
-                decodeItems.forEach {
-                    if case .code(let context) = $0.block {
-                        MDHighlightr.lightr(for: context.code, language: context.language)
-                    }
-                }
+                let tempAppendIndex = min(appendIndex + 1, textTTT.count)
+                let streamedMarkdown = String(textTTT.prefix(tempAppendIndex))
+                let decodeItems = streamedMarkdown.blockNode()
                 appendIndex = tempAppendIndex
                 await MainActor.run {
                     items = decodeItems
